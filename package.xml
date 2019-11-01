@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>mod_path_planning</name>
+  <version>0.0.0</version>
+  <description>Planner for IJRR paper</description>
+
+  <maintainer email="ksatyaki@gmail.com">Chittaranjan Srinivas Swaminathan</maintainer>
+
+  <license>LGPLv3</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>whytemap_ros</build_depend>
+  <build_depend>cliffmap_ros</build_depend>
+  <build_depend>stefmap_ros</build_depend>
+  <build_depend>gmmtmap_ros</build_depend>
+  <build_depend>ompl_mod_objectives</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>message_generation</build_depend>
+
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>whytemap_ros</build_export_depend>
+  <build_export_depend>cliffmap_ros</build_export_depend>
+  <build_export_depend>stefmap_ros</build_export_depend>
+  <build_export_depend>gmmtmap_ros</build_export_depend>
+  <build_export_depend>ompl_mod_objectives</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>cliffmap_ros</exec_depend>
+  <exec_depend>stefmap_ros</exec_depend>
+  <exec_depend>gmmtmap_ros</exec_depend>
+  <exec_depend>whytemap_ros</exec_depend>
+  <exec_depend>ompl_mod_objectives</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>
