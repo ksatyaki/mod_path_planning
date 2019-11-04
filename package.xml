@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="1">
   <name>mod_path_planning</name>
   <version>0.0.0</version>
   <description>Planner for IJRR paper</description>
@@ -15,28 +15,32 @@
   <build_depend>stefmap_ros</build_depend>
   <build_depend>gmmtmap_ros</build_depend>
   <build_depend>ompl_mod_objectives</build_depend>
+  <build_depend>ompl_planners_ros</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>costmap_2d</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <build_depend>mrpt1</build_depend>
+  <build_depend>ompl</build_depend>
+  <build_depend>nav_msgs</build_depend>
   <build_depend>message_generation</build_depend>
 
-  <build_export_depend>geometry_msgs</build_export_depend>
-  <build_export_depend>whytemap_ros</build_export_depend>
-  <build_export_depend>cliffmap_ros</build_export_depend>
-  <build_export_depend>stefmap_ros</build_export_depend>
-  <build_export_depend>gmmtmap_ros</build_export_depend>
-  <build_export_depend>ompl_mod_objectives</build_export_depend>
-  <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>roscpp</build_export_depend>
-
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>message_runtime</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>cliffmap_ros</exec_depend>
-  <exec_depend>stefmap_ros</exec_depend>
-  <exec_depend>gmmtmap_ros</exec_depend>
-  <exec_depend>whytemap_ros</exec_depend>
-  <exec_depend>ompl_mod_objectives</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
+  
+  <run_depend>roscpp</run_depend>
+  <run_depend>costmap_2d</run_depend>
+  <run_depend>visualization_msgs</run_depend>
+  <run_depend>ompl_mod_objectives</run_depend>
+  <run_depend>ompl_planners_ros</run_depend>
+  <run_depend>mrpt1</run_depend>
+  <run_depend>ompl</run_depend>
+  <run_depend>nav_msgs</run_depend>
+  <run_depend>message_runtime</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>cliffmap_ros</run_depend>
+  <run_depend>stefmap_ros</run_depend>
+  <run_depend>gmmtmap_ros</run_depend>
+  <run_depend>whytemap_ros</run_depend>
+  <run_depend>std_msgs</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
