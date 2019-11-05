@@ -26,6 +26,7 @@
 #include <nav_msgs/Path.h>
 #include <std_msgs/Empty.h>
 #include <std_msgs/String.h>
+#include <mod_path_planning/MoDPlanningGoal.h>
 
 #include <mrpt/math/CPolygon.h>
 
@@ -39,12 +40,16 @@
 
 #include "ompl/mod/objectives/DTCOptimizationObjective.h"
 #include "ompl/mod/objectives/DTWOptimizationObjective.h"
+#include "ompl/mod/objectives/MoDOptimizationObjective.h"
 #include "ompl/mod/objectives/UpstreamCriterionOptimizationObjective.h"
 
-class CarPlannerROSNode {
+std::queue<mod_path_planning::MoDPlanningGoalConstPtr> goal_queue_;
+
+class MoDReedsSheppRRTStarPlanner {
 protected:
   ros::NodeHandle nh;
   ros::NodeHandle private_nh;
+  ompl::mod::MapType mod_type_;
 
   ompl_planners_ros::PlannerParameters pp;
   ompl_planners_ros::VehicleParameters vp;
@@ -56,15 +61,15 @@ protected:
 
   ros::ServiceClient map_client;
 
-  ros::Subscriber save_path_sub;
-
-  geometry_msgs::PosePtr start_pose;
   geometry_msgs::PoseArrayPtr poses_ptr;
   boost::shared_ptr<ompl_planners_ros::MultipleCirclesReedsSheppCarPlanner>
       planner;
 
+  double planning_time_;
+
 public:
-  CarPlannerROSNode() : nh("~") {
+  MoDReedsSheppRRTStarPlanner(ompl::mod::MapType map_type, double time = 0.0)
+      : planning_time_(time), nh("~") {
     map_client = private_nh.serviceClient<nav_msgs::GetMap>("static_map");
     map_client.waitForExistence();
 
@@ -75,14 +80,11 @@ public:
 
     ROS_INFO_STREAM("[PLANNER]: Map received!");
 
-    std::string mod_type = "CLiFF-map";
-
     nh.getParam("planner/weight_d", pp.weight_d);
     nh.getParam("planner/weight_c", pp.weight_c);
     nh.getParam("planner/weight_q", pp.weight_q);
     nh.getParam("planner/planning_time", pp.planning_time);
     nh.getParam("planner/path_resolution", pp.path_resolution);
-    nh.getParam("planner/mod_type", mod_type);
     nh.getParam("planner/publish_viz_markers", pp.publish_viz_markers);
     nh.getParam("vehile/inflation_radius", vp.inflation_radius);
     nh.getParam("vehicle/turning_radius", vp.turning_radius);
@@ -97,6 +99,26 @@ public:
     }
 
     int shitwidth = 31;
+
+    std::string mod_type;
+
+    switch (this->mod_type_) {
+    case ompl::mod::MapType::CLiFFMap:
+      mod_type = "CLiFFMap";
+      break;
+    case ompl::mod::MapType::STeFMap:
+      mod_type = "STeFMap";
+      break;
+    case ompl::mod::MapType::GMMTMap:
+      mod_type = "GMMTMap";
+      break;
+    case ompl::mod::MapType::WHyTeMap:
+      mod_type = "WHyTeMap";
+      break;
+    case ompl::mod::MapType::NOTSET:
+      mod_type = "None";
+      break;
+    }
 
     ROS_INFO_STREAM("*** *********************************** ***");
     ROS_INFO_STREAM("*** wd: " << std::setw(shitwidth) << pp.weight_d
@@ -129,7 +151,8 @@ public:
         ompl_planners_ros::MultipleCirclesReedsSheppCarPlanner>(pp, vp,
                                                                 occ_map);
     planner->ss->getProblemDefinition()->setIntermediateSolutionCallback(
-        boost::bind(&CarPlannerROSNode::solutionCallback, this, _1, _2, _3));
+        boost::bind(&MoDReedsSheppRRTStarPlanner::solutionCallback, this, _1,
+                    _2, _3));
 
     if (mod_type == "CLiFF-map" or mod_type == "CLiFFMap") {
       ROS_INFO_STREAM("\x1b[34mCLiFF-map planning is activated.");
@@ -151,8 +174,8 @@ public:
       ob::OptimizationObjectivePtr UCOO(
           new ompl::mod::UpstreamCriterionOptimizationObjective(
               planner->ss->getSpaceInformation(),
-              stefmap_client->get(1352265000.0, 2, -45, 55, -35, 30, 1),
-              pp.weight_d, pp.weight_q, pp.weight_c));
+              stefmap_client->get(planning_time_, 2, -45, 55, -35, 30, 1), pp.weight_d,
+              pp.weight_q, pp.weight_c));
 
       planner->ss->setOptimizationObjective(UCOO);
 
@@ -173,17 +196,15 @@ public:
           new ompl::mod::DTWOptimizationObjective(
               planner->ss->getSpaceInformation(), whytemap_client->get(),
               pp.weight_d, pp.weight_q, pp.weight_c, vp.max_vehicle_speed));
+      std::dynamic_pointer_cast<ompl::mod::DTWOptimizationObjective>(DTWOO)->setTimeStamp(planning_time_);
       planner->ss->setOptimizationObjective(DTWOO);
     } else {
       ROS_WARN_STREAM("Wrong or missing 'mod_type' parameter. Not using MoDs "
                       "for planning.");
     }
-
-    save_path_sub = this->private_nh.subscribe(
-        "save_path", 1, &CarPlannerROSNode::savePathCallback, this);
   }
 
-  virtual ~CarPlannerROSNode() = default;
+  virtual ~MoDReedsSheppRRTStarPlanner() = default;
 
   void savePathCallback(const std_msgs::String &msg) {
     ROS_INFO_STREAM("\x1b[34mSaving path to file: " << msg.data.c_str());
@@ -209,41 +230,33 @@ public:
     ROS_INFO_STREAM("New solution found with cost: \x1b[34m"
                     << std::fixed << std::setprecision(2) << cost.value());
   }
-
-  void callback_fn(const geometry_msgs::PoseStampedConstPtr &msg, bool start) {
-    if (start) {
-      start_pose = geometry_msgs::PosePtr(new geometry_msgs::Pose);
-      *start_pose = msg->pose;
-    } else {
-      if (!start_pose) {
-        ROS_INFO_STREAM("\x1b[93mUse RViz to select the start pose first.");
-        return;
-      }
-      poses_ptr.reset();
-      poses_ptr = geometry_msgs::PoseArrayPtr(new geometry_msgs::PoseArray);
-      poses_ptr->header.frame_id = "map";
-      poses_ptr->header.stamp = ros::Time::now();
-      planner->plan(*start_pose, msg->pose, poses_ptr.get());
-      ROS_INFO_STREAM("\x1b[34mPLANNING COMPLETE!");
-    }
-  }
 };
 
-int main(int argn, char *args[]) {
-  ros::init(argn, args, "rscp_node");
+void modGoalCallback(const mod_path_planning::MoDPlanningGoalConstPtr& msg) {
+  ROS_INFO("Adding a goal to the queue.");
+  goal_queue_.push(msg);
+}
 
-  CarPlannerROSNode cprn;
+int main(int argn, char *args[]) {
+  ros::init(argn, args, "mod_path_planning_node");
+
   ros::NodeHandle nhandle;
 
-  ros::Subscriber goalSub = nhandle.subscribe<geometry_msgs::PoseStamped>(
-      "goal", 1,
-      boost::bind(&CarPlannerROSNode::callback_fn, &cprn, _1, false));
+  ros::Subscriber mod_planning_sub = nhandle.subscribe("/mod_planning_goal", 1, &modGoalCallback);
 
-  ros::Subscriber startSub = nhandle.subscribe<geometry_msgs::PoseStamped>(
-      "start", 1,
-      boost::bind(&CarPlannerROSNode::callback_fn, &cprn, _1, true));
+  while(ros::ok()) {
+    ros::spinOnce();
+    if(not goal_queue_.empty()) {
+      const mod_path_planning::MoDPlanningGoalConstPtr goal = goal_queue_.front();
+      goal_queue_.pop();
 
-  ros::spin();
+      // Start planning.
+
+      // Save path.
+
+      // Save statistics.
+    }
+  }
 
   return 0;
 }
