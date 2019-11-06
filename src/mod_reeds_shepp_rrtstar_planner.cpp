@@ -21,12 +21,12 @@
 
 #include <costmap_2d/footprint.h>
 #include <geometry_msgs/PoseArray.h>
+#include <mod_path_planning/MoDPlanningGoal.h>
 #include <nav_msgs/GetMap.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <nav_msgs/Path.h>
 #include <std_msgs/Empty.h>
 #include <std_msgs/String.h>
-#include <mod_path_planning/MoDPlanningGoal.h>
 
 #include <mrpt/math/CPolygon.h>
 
@@ -61,7 +61,7 @@ protected:
 
   ros::ServiceClient map_client;
 
-  geometry_msgs::PoseArrayPtr poses_ptr;
+  boost::shared_ptr<std::vector<geometry_msgs::Pose2D>> solution_poses_ptr;
   boost::shared_ptr<ompl_planners_ros::MultipleCirclesReedsSheppCarPlanner>
       planner;
 
@@ -69,7 +69,7 @@ protected:
 
 public:
   MoDReedsSheppRRTStarPlanner(ompl::mod::MapType map_type, double time = 0.0)
-      : planning_time_(time), nh("~") {
+      : planning_time_(time), nh("~"), mod_type_(map_type) {
     map_client = private_nh.serviceClient<nav_msgs::GetMap>("static_map");
     map_client.waitForExistence();
 
@@ -100,26 +100,6 @@ public:
 
     int shitwidth = 31;
 
-    std::string mod_type;
-
-    switch (this->mod_type_) {
-    case ompl::mod::MapType::CLiFFMap:
-      mod_type = "CLiFFMap";
-      break;
-    case ompl::mod::MapType::STeFMap:
-      mod_type = "STeFMap";
-      break;
-    case ompl::mod::MapType::GMMTMap:
-      mod_type = "GMMTMap";
-      break;
-    case ompl::mod::MapType::WHyTeMap:
-      mod_type = "WHyTeMap";
-      break;
-    case ompl::mod::MapType::NOTSET:
-      mod_type = "None";
-      break;
-    }
-
     ROS_INFO_STREAM("*** *********************************** ***");
     ROS_INFO_STREAM("*** wd: " << std::setw(shitwidth) << pp.weight_d
                                << " ***");
@@ -134,8 +114,6 @@ public:
                                           << pp.planning_time << " ***");
     ROS_INFO_STREAM("*** Path resolution: " << std::setw(shitwidth - 13)
                                             << pp.path_resolution << " ***");
-    ROS_INFO_STREAM("*** MoD type: " << std::setw(shitwidth - 6)
-                                     << mod_type.c_str() << " ***");
     ROS_INFO_STREAM("*** Turning radius: " << std::setw(shitwidth - 12)
                                            << vp.turning_radius << " ***");
     ROS_INFO_STREAM("*** Inflation radius: " << std::setw(shitwidth - 14)
@@ -150,11 +128,8 @@ public:
     planner = boost::make_shared<
         ompl_planners_ros::MultipleCirclesReedsSheppCarPlanner>(pp, vp,
                                                                 occ_map);
-    planner->ss->getProblemDefinition()->setIntermediateSolutionCallback(
-        boost::bind(&MoDReedsSheppRRTStarPlanner::solutionCallback, this, _1,
-                    _2, _3));
 
-    if (mod_type == "CLiFF-map" or mod_type == "CLiFFMap") {
+    if (mod_type_ == ompl::mod::MapType::CLiFFMap) {
       ROS_INFO_STREAM("\x1b[34mCLiFF-map planning is activated.");
 
       cliffmap_client = std::make_shared<cliffmap_ros::CLiFFMapClient>();
@@ -166,7 +141,7 @@ public:
 
       planner->ss->setOptimizationObjective(DTCCostObjective);
 
-    } else if (mod_type == "STeF-map" or mod_type == "STeFMap") {
+    } else if (mod_type_ == ompl::mod::MapType::STeFMap) {
       ROS_INFO_STREAM("\x1b[34mSTeF-map planning is activated.");
 
       stefmap_client = std::make_shared<stefmap_ros::STeFMapClient>();
@@ -174,12 +149,12 @@ public:
       ob::OptimizationObjectivePtr UCOO(
           new ompl::mod::UpstreamCriterionOptimizationObjective(
               planner->ss->getSpaceInformation(),
-              stefmap_client->get(planning_time_, 2, -45, 55, -35, 30, 1), pp.weight_d,
-              pp.weight_q, pp.weight_c));
+              stefmap_client->get(planning_time_, 2, -45, 55, -35, 30, 1),
+              pp.weight_d, pp.weight_q, pp.weight_c));
 
       planner->ss->setOptimizationObjective(UCOO);
 
-    } else if (mod_type == "GMMT-map" or mod_type == "GMMTMap") {
+    } else if (mod_type_ == ompl::mod::MapType::GMMTMap) {
       ROS_INFO_STREAM("\x1b[34mGMMT-map planning is activated.");
 
       gmmtmap_client = std::make_shared<gmmtmap_ros::GMMTMapClient>();
@@ -189,22 +164,79 @@ public:
               planner->ss->getSpaceInformation(), gmmtmap_client->get(),
               pp.weight_d, pp.weight_q, pp.weight_c));
       planner->ss->setOptimizationObjective(UCOO);
-    } else if (mod_type == "WHyTe-map" or mod_type == "WHyTeMap") {
+
+    } else if (mod_type_ == ompl::mod::MapType::WHyTeMap) {
       ROS_INFO_STREAM("\x1b[34mWHyTe-map planning is activated.");
       whytemap_client = std::make_shared<whytemap_ros::WHyTeMapClient>();
       ob::OptimizationObjectivePtr DTWOO(
           new ompl::mod::DTWOptimizationObjective(
               planner->ss->getSpaceInformation(), whytemap_client->get(),
               pp.weight_d, pp.weight_q, pp.weight_c, vp.max_vehicle_speed));
-      std::dynamic_pointer_cast<ompl::mod::DTWOptimizationObjective>(DTWOO)->setTimeStamp(planning_time_);
+      std::dynamic_pointer_cast<ompl::mod::DTWOptimizationObjective>(DTWOO)
+          ->setTimeStamp(planning_time_);
       planner->ss->setOptimizationObjective(DTWOO);
+
     } else {
       ROS_WARN_STREAM("Wrong or missing 'mod_type' parameter. Not using MoDs "
                       "for planning.");
     }
   }
 
+  std::string getMapTypeStr() {
+    return std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
+               planner->ss->getOptimizationObjective())
+        ->getMapTypeStr();
+  }
+
   virtual ~MoDReedsSheppRRTStarPlanner() = default;
+
+  void plan(const geometry_msgs::Pose2D &start,
+            const geometry_msgs::Pose2D &goal) {
+    planner->ss->getProblemDefinition()->setIntermediateSolutionCallback(
+        boost::bind(&MoDReedsSheppRRTStarPlanner::solutionCallback, this, _1,
+                    _2, _3, start, goal));
+
+    solution_poses_ptr.reset();
+    solution_poses_ptr =
+        boost::make_shared<std::vector<geometry_msgs::Pose2D>>();
+    planner->plan(start, goal, solution_poses_ptr.get());
+  }
+
+  double getSolutionCost() {
+    auto space_info = this->planner->ss->getSpaceInformation();
+    auto opt_obj =
+        std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
+            this->planner->ss->getOptimizationObjective());
+
+    std::vector<ompl::base::State *> states =
+        planner->ss->getSolutionPath().getStates();
+
+    double total_cost = 0.0;
+    for (size_t i = 0; i < (states.size() - 1); i++) {
+      auto this_cost = opt_obj->motionCost(states[i], states[i + 1]);
+      total_cost = total_cost + this_cost.value();
+    }
+
+    return total_cost;
+  }
+
+  ompl::mod::Cost getSolutionCostComponents() {
+    auto space_info = this->planner->ss->getSpaceInformation();
+    auto opt_obj =
+        std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
+            this->planner->ss->getOptimizationObjective());
+
+    std::vector<ompl::base::State *> states =
+        planner->ss->getSolutionPath().getStates();
+
+    ompl::mod::Cost all_costs;
+    for (size_t i = 0; i < (states.size() - 1); i++) {
+      auto this_cost = opt_obj->motionCost(states[i], states[i + 1]);
+      all_costs = all_costs + opt_obj->getLastCost();
+    }
+
+    return all_costs;
+  }
 
   void savePathCallback(const std_msgs::String &msg) {
     ROS_INFO_STREAM("\x1b[34mSaving path to file: " << msg.data.c_str());
@@ -214,9 +246,8 @@ public:
       return;
     }
 
-    for (const auto &pose : poses_ptr->poses) {
-      ofile << pose.position.x << ", " << pose.position.y << ", "
-            << 2 * atan2(pose.orientation.z, pose.orientation.w) << std::endl;
+    for (const auto &pose : *solution_poses_ptr) {
+      ofile << pose.x << ", " << pose.y << ", " << pose.theta << std::endl;
     }
 
     ofile.close();
@@ -226,13 +257,67 @@ public:
   void solutionCallback(
       const ompl::base::Planner *planner,
       const std::vector<const ompl::base::State *> &solution_states,
-      const ompl::base::Cost cost) {
+      const ompl::base::Cost cost, const geometry_msgs::Pose2D &start,
+      const geometry_msgs::Pose2D &goal) {
+
     ROS_INFO_STREAM("New solution found with cost: \x1b[34m"
                     << std::fixed << std::setprecision(2) << cost.value());
+
+    auto space_info = planner->getSpaceInformation();
+    auto opt_obj =
+        std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
+            planner->getProblemDefinition()->getOptimizationObjective());
+
+    // Allocate new ompl::base::State* for storing the start and goal states.
+    ompl::base::State *start_state = space_info->allocState();
+    ompl::base::State *goal_state = space_info->allocState();
+
+    // Create start ompl::base::State*
+    (start_state->as<ompl::base::ReedsSheppStateSpace::StateType>())
+        ->setX(start.x);
+    (start_state->as<ompl::base::ReedsSheppStateSpace::StateType>())
+        ->setY(start.y);
+    (start_state->as<ompl::base::ReedsSheppStateSpace::StateType>())
+        ->setYaw(start.theta);
+
+    // Create goal ompl::base::State*
+    (goal_state->as<ompl::base::ReedsSheppStateSpace::StateType>())
+        ->setX(goal.x);
+    (goal_state->as<ompl::base::ReedsSheppStateSpace::StateType>())
+        ->setY(goal.y);
+    (goal_state->as<ompl::base::ReedsSheppStateSpace::StateType>())
+        ->setYaw(goal.theta);
+
+    // Add start and goal to the solution states.
+    std::vector<const ompl::base::State *> copy_solution_states;
+    copy_solution_states.insert(copy_solution_states.begin(), goal_state);
+    for (const auto s : solution_states) {
+      copy_solution_states.insert(copy_solution_states.begin(), s);
+    }
+    copy_solution_states.insert(copy_solution_states.begin(), start_state);
+
+    // Compute costs.
+    ompl::mod::Cost total_path_cost;
+    double total_cost = 0.0;
+    for (size_t i = 0; i < (copy_solution_states.size() - 1); i++) {
+      auto this_cost = opt_obj->motionCost(copy_solution_states[i],
+                                           copy_solution_states[i + 1]);
+      total_cost = total_cost + this_cost.value();
+      total_path_cost = total_path_cost + opt_obj->getLastCost();
+    }
+
+    // Free the start and goal.
+    space_info->freeState(start_state);
+    space_info->freeState(goal_state);
+
+    ROS_INFO("Solution total cost: %lf", total_cost);
+    ROS_INFO("Solution cost components: cost_d: %lf, cost_q: %lf, cost_c: %lf",
+             total_path_cost.cost_d_, total_path_cost.cost_q_,
+             total_path_cost.cost_c_);
   }
 };
 
-void modGoalCallback(const mod_path_planning::MoDPlanningGoalConstPtr& msg) {
+void modGoalCallback(const mod_path_planning::MoDPlanningGoalConstPtr &msg) {
   ROS_INFO("Adding a goal to the queue.");
   goal_queue_.push(msg);
 }
@@ -242,21 +327,68 @@ int main(int argn, char *args[]) {
 
   ros::NodeHandle nhandle;
 
-  ros::Subscriber mod_planning_sub = nhandle.subscribe("/mod_planning_goal", 1, &modGoalCallback);
+  ros::Subscriber mod_planning_sub =
+      nhandle.subscribe("/mod_planning_goal", 10, &modGoalCallback);
 
-  while(ros::ok()) {
-    ros::spinOnce();
-    if(not goal_queue_.empty()) {
-      const mod_path_planning::MoDPlanningGoalConstPtr goal = goal_queue_.front();
+  ros::Rate rate(1);
+  ros::AsyncSpinner spinner(4);
+  spinner.start();
+
+  while (ros::ok()) {
+    if (not goal_queue_.empty()) {
+      const mod_path_planning::MoDPlanningGoalConstPtr goal =
+          goal_queue_.front();
       goal_queue_.pop();
 
-      // Start planning.
+      ompl::mod::MapType planningGoalMapType;
+      switch (goal->mod_type) {
+      case mod_path_planning::MoDPlanningGoal::CLIFF:
+        planningGoalMapType = ompl::mod::MapType::CLiFFMap;
+        break;
+      case mod_path_planning::MoDPlanningGoal::STEF:
+        planningGoalMapType = ompl::mod::MapType::STeFMap;
+        break;
+      case mod_path_planning::MoDPlanningGoal::WHYTE:
+        planningGoalMapType = ompl::mod::MapType::WHyTeMap;
+        break;
+      case mod_path_planning::MoDPlanningGoal::GMMT:
+        planningGoalMapType = ompl::mod::MapType::GMMTMap;
+        break;
+      default:
+        planningGoalMapType = ompl::mod::MapType::NOTSET;
+        break;
+      }
+
+      // Instantiate planner
+      MoDReedsSheppRRTStarPlanner mod_rs_rrtstar_planner(
+          planningGoalMapType, goal->header.stamp.toSec());
+
+      // Start planning
+      mod_rs_rrtstar_planner.plan(goal->start, goal->goal);
 
       // Save path.
+      std_msgs::String save_path_msg;
+      char fileName[100];
+      sprintf(fileName, "/home/ksatyaki/.ros/savedPaths/%s_%d.path",
+              mod_rs_rrtstar_planner.getMapTypeStr().c_str(), goal->header.seq);
+      save_path_msg.data = fileName;
+      mod_rs_rrtstar_planner.savePathCallback(save_path_msg);
 
       // Save statistics.
+      ROS_INFO("Solution total cost: %lf",
+               mod_rs_rrtstar_planner.getSolutionCost());
+      ROS_INFO(
+          "Solution cost components: cost_d: %lf, cost_q: %lf, cost_c: %lf",
+          mod_rs_rrtstar_planner.getSolutionCostComponents().cost_d_,
+          mod_rs_rrtstar_planner.getSolutionCostComponents().cost_q_,
+          mod_rs_rrtstar_planner.getSolutionCostComponents().cost_c_);
+    } else {
+      ROS_INFO("No goals in queue yet.");
+      rate.sleep();
     }
   }
+
+  ROS_INFO("ROS Shutdown. Done.");
 
   return 0;
 }

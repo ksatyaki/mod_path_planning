@@ -1,4 +1,4 @@
-time stamp
+Header header
 geometry_msgs/Pose2D start
 geometry_msgs/Pose2D goal
 uint8 mod_type
