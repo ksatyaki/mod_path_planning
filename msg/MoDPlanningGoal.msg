@@ -6,3 +6,5 @@ uint8 CLIFF=0
 uint8 STEF=1
 uint8 GMMT=2
 uint8 WHYTE=3
+bool upstream
+float64 weight_c
