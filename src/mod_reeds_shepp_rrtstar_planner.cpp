@@ -171,7 +171,7 @@ public:
     STeFUpstreamCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::UpstreamCriterionOptimizationObjective(
             planner->ss->getSpaceInformation(),
-            stefmap_client->get(planning_time_, 2, -45, 55, -35, 30, 1),
+            stefmap_client->get(planning_time_, 2, -10, 3, 0, 14, 0.5),
             pp.weight_d, pp.weight_q, pp.weight_c));
 
     GMMTUpstreamCostObjective = ob::OptimizationObjectivePtr(
@@ -394,9 +394,9 @@ public:
     space_info->freeState(goal_state);
 
     ROS_INFO("Solution total cost: %lf", total_cost);
-    ROS_INFO("Solution cost components: cost_d: %lf, cost_q: %lf, cost_c: %lf",
-             total_path_cost.cost_d_, total_path_cost.cost_q_,
-             total_path_cost.cost_c_);
+    //ROS_INFO("Solution cost components: cost_d: %lf, cost_q: %lf, cost_c: %lf",
+    //         total_path_cost.cost_d_, total_path_cost.cost_q_,
+    //         total_path_cost.cost_c_);
   }
 };
 

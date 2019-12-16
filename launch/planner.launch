@@ -7,19 +7,21 @@
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
   
-  <arg name="cliffmap" default="pedsim_office" />
-  <arg name="gmmtmap" default="pedsim_office" />
-  <arg name="occmap" default="pedsim_office" />
+  <arg name="cliffmap" default="utbm_cliff" />
+  <arg name="gmmtmap" default="utbm_gmmt" />
+  <arg name="whytemap" default="utbm_whyte" />
+  <arg name="occmap" default="UTBM" />
   
   <!-- Parameters -->
   <rosparam file="$(find ompl_planners_ros)/param/rrtstar_motion_planner_params.yaml" command="load"/>
   
   <!-- Nodes -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find ompl_planners_ros)/maps/$(arg occmap).yaml"/>
-  
-  <node name="cliffmap_server" pkg="cliffmap_ros" type="cliffmap_server" args="$(find ompl_planners_ros)/cliffmaps/$(arg cliffmap).xml"/>
-  <node name="gmmtmap_server" pkg="gmmtmap_ros" type="gmmtmap_server" args="$(find ompl_planners_ros)/gmmtmaps/$(arg gmmtmap).xml"/>
-  <!-- node name="stefmap_server" pkg="stefmap_ros" type="stefmap_server.py" / -->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find mod_path_planning)/maps/$(arg occmap).yaml"/>
+
+  <node name="cliffmap_server" pkg="cliffmap_ros" type="cliffmap_server" args="$(find mod_path_planning)/$(arg cliffmap).xml"/>
+  <node name="gmmtmap_server" pkg="gmmtmap_ros" type="gmmtmap_server" args="$(find mod_path_planning)/$(arg gmmtmap).xml"/>
+  <node name="whytemap_server" pkg="whytemap_ros" type="whytemap_server" args="$(find mod_path_planning)/$(arg whytemap).xml"/>
+  <node name="stefmap_server" pkg="stefmap_ros" type="stefmap_server.py" />
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find ompl_planners_ros)/launch/srscp.rviz"/>
     
