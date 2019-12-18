@@ -16,6 +16,8 @@
  *   along with ompl_planners_ros.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <mutex>
+
 #include <ros/console.h>
 #include <ros/ros.h>
 
@@ -44,6 +46,7 @@
 #include "ompl/mod/objectives/UpstreamCriterionOptimizationObjective.h"
 
 std::queue<mod_path_planning::MoDPlanningGoalConstPtr> goal_queue_;
+std::mutex resource_mutex_;
 
 class MoDReedsSheppRRTStarPlanner {
 protected:
@@ -87,6 +90,7 @@ protected:
 
 public:
   MoDReedsSheppRRTStarPlanner(ompl::mod::MapType map_type, double time = 0.0,
+                              double planning_time_limit = 30.0,
                               double weight_c = 0.2, bool upstream = false)
       : planning_time_(time), nh("~"), mod_type_(map_type) {
     map_client = private_nh.serviceClient<nav_msgs::GetMap>("static_map");
@@ -102,7 +106,7 @@ public:
     nh.getParam("planner/weight_d", pp.weight_d);
     pp.weight_c = weight_c;
     nh.getParam("planner/weight_q", pp.weight_q);
-    nh.getParam("planner/planning_time", pp.planning_time);
+    pp.planning_time = planning_time_limit;
     nh.getParam("planner/path_resolution", pp.path_resolution);
     nh.getParam("planner/publish_viz_markers", pp.publish_viz_markers);
     nh.getParam("vehile/inflation_radius", vp.inflation_radius);
@@ -389,20 +393,17 @@ public:
       total_path_cost = total_path_cost + opt_obj->getLastCost();
     }
 
-    // Free the start and goal.
-    space_info->freeState(start_state);
-    space_info->freeState(goal_state);
-
     ROS_INFO("Solution total cost: %lf", total_cost);
-    //ROS_INFO("Solution cost components: cost_d: %lf, cost_q: %lf, cost_c: %lf",
-    //         total_path_cost.cost_d_, total_path_cost.cost_q_,
-    //         total_path_cost.cost_c_);
   }
 };
 
 void modGoalCallback(const mod_path_planning::MoDPlanningGoalConstPtr &msg) {
   ROS_INFO("Adding a goal to the queue.");
-  goal_queue_.push(msg);
+  resource_mutex_.lock();
+  for (int i = 0; i < msg->times; i++) {
+    goal_queue_.push(msg);
+  }
+  resource_mutex_.unlock();
 }
 
 int main(int argn, char *args[]) {
@@ -417,11 +418,22 @@ int main(int argn, char *args[]) {
   ros::AsyncSpinner spinner(4);
   spinner.start();
 
+  static int seq = 0;
+
+  std::ofstream statsFile("/home/ksatyaki/.ros/savedPaths/stats.csv", std::ios::out);
+  if (!statsFile) {
+    ROS_ERROR_STREAM("Couldn't open stats file!");
+    return -1;
+  }
+
   while (ros::ok()) {
     if (not goal_queue_.empty()) {
+
+      resource_mutex_.lock();
       const mod_path_planning::MoDPlanningGoalConstPtr goal =
           goal_queue_.front();
       goal_queue_.pop();
+      resource_mutex_.unlock();
 
       ompl::mod::MapType planningGoalMapType;
       switch (goal->mod_type) {
@@ -444,8 +456,8 @@ int main(int argn, char *args[]) {
 
       // Instantiate planner
       MoDReedsSheppRRTStarPlanner mod_rs_rrtstar_planner(
-          planningGoalMapType, goal->header.stamp.toSec(), goal->weight_c,
-          goal->upstream);
+          planningGoalMapType, goal->header.stamp.toSec(),
+          goal->planning_time_limit, goal->weight_c, goal->upstream);
 
       // Start planning
       mod_rs_rrtstar_planner.plan(goal->start, goal->goal);
@@ -453,8 +465,9 @@ int main(int argn, char *args[]) {
       // Save path.
       std_msgs::String save_path_msg;
       char fileName[100];
-      sprintf(fileName, "/home/ksatyaki/.ros/savedPaths/%s_%d.path",
-              mod_rs_rrtstar_planner.getMapTypeStr().c_str(), goal->header.seq);
+      sprintf(fileName, "/home/ksatyaki/.ros/savedPaths/%s_%s_%d.path",
+              mod_rs_rrtstar_planner.getMapTypeStr().c_str(),
+              goal->upstream ? "_upstream" : "noup", seq++);
       save_path_msg.data = fileName;
       mod_rs_rrtstar_planner.savePathCallback(save_path_msg);
 
@@ -462,30 +475,56 @@ int main(int argn, char *args[]) {
       ROS_INFO("Solution total cost: %lf",
                mod_rs_rrtstar_planner.getSolutionCost(
                    mod_rs_rrtstar_planner.getOptimizationObjective()));
-      ROS_INFO(
-          "Solution cost components: "
-          "cost_d: %lf, "
-          "cost_q: %lf, "
-          "DTC: %lf, "
-          "DTW: %lf, "
-          "CLiFFUpstream: %lf, "
-          "STeFUpstream: %lf, "
-          "GMMTUpstream: %lf, "
-          "WHyTeUpstream: %lf.",
-          mod_rs_rrtstar_planner.getSolutionCostComponents(mod_rs_rrtstar_planner.getOptimizationObjective()).cost_d_,
-          mod_rs_rrtstar_planner.getSolutionCostComponents(mod_rs_rrtstar_planner.getOptimizationObjective()).cost_q_,
-          mod_rs_rrtstar_planner.getDTCCost(),
-          mod_rs_rrtstar_planner.getDTWCost(),
-          mod_rs_rrtstar_planner.getCLiFFUpstreamCost(),
-          mod_rs_rrtstar_planner.getSTeFUpstreamCost(),
-          mod_rs_rrtstar_planner.getGMMTUpstreamCost(),
-          mod_rs_rrtstar_planner.getWHyTeUpstreamCost());
+      ROS_INFO("Solution cost components: "
+               "cost_d: %lf, "
+               "cost_q: %lf, "
+               "DTC: %lf, "
+               "DTW: %lf, "
+               "CLiFFUpstream: %lf, "
+               "STeFUpstream: %lf, "
+               //"WHyTeUpstream: %lf."
+               "GMMTUpstream: %lf, ",
+               mod_rs_rrtstar_planner
+                   .getSolutionCostComponents(
+                       mod_rs_rrtstar_planner.getOptimizationObjective())
+                   .cost_d_,
+               mod_rs_rrtstar_planner
+                   .getSolutionCostComponents(
+                       mod_rs_rrtstar_planner.getOptimizationObjective())
+                   .cost_q_,
+               mod_rs_rrtstar_planner.getDTCCost(),
+               mod_rs_rrtstar_planner.getDTWCost(),
+               mod_rs_rrtstar_planner.getCLiFFUpstreamCost(),
+               mod_rs_rrtstar_planner.getSTeFUpstreamCost(),
+               // mod_rs_rrtstar_planner.getWHyTeUpstreamCost(),
+               mod_rs_rrtstar_planner.getGMMTUpstreamCost());
+
+      char costLine[300];
+      sprintf(costLine, "%s_%s, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf",
+              mod_rs_rrtstar_planner.getMapTypeStr().c_str(),
+              goal->upstream ? "_upstream" : "noup",
+              goal->header.seq,
+              mod_rs_rrtstar_planner
+                  .getSolutionCostComponents(
+                      mod_rs_rrtstar_planner.getOptimizationObjective())
+                  .cost_d_,
+              mod_rs_rrtstar_planner
+                  .getSolutionCostComponents(
+                      mod_rs_rrtstar_planner.getOptimizationObjective())
+                  .cost_q_,
+              mod_rs_rrtstar_planner.getDTCCost(),
+              mod_rs_rrtstar_planner.getDTWCost(),
+              mod_rs_rrtstar_planner.getCLiFFUpstreamCost(),
+              mod_rs_rrtstar_planner.getSTeFUpstreamCost(),
+              mod_rs_rrtstar_planner.getGMMTUpstreamCost());
+      statsFile << costLine << std::endl;
     } else {
       ROS_INFO("No goals in queue yet.");
       rate.sleep();
     }
   }
 
+  statsFile.close();
   ROS_INFO("ROS Shutdown. Done.");
 
   return 0;

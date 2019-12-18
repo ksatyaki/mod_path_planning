@@ -1,0 +1,14 @@
+RRTStarMotionPlanner:
+  footprint: [[0.5, 0.2], [0.5, -0.2], [-0.2, -0.2], [-0.2, 0.2]]
+  planner:
+    mod_type: CLiFF-map
+    planning_time: 300.0
+    weight_q: 1.0
+    weight_c: 0.02
+    weight_d: 1.0
+    path_resolution: 0.1
+    publish_viz_markers: true
+  vehicle:
+    inflation_radius: 0.1
+    turning_radius: 0.5
+    max_vehicle_speed: 0.5

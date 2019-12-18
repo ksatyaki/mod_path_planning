@@ -1,4 +1,6 @@
 Header header
+uint32 times
+float64 planning_time_limit
 geometry_msgs/Pose2D start
 geometry_msgs/Pose2D goal
 uint8 mod_type
@@ -6,5 +8,6 @@ uint8 CLIFF=0
 uint8 STEF=1
 uint8 GMMT=2
 uint8 WHYTE=3
+uint8 NONE=4
 bool upstream
 float64 weight_c
