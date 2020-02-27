@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>
+
+  <param name="use_sim_time" value="false"/>
+
+  <node name="fremen" pkg="fremenarray" type="fremenarray"/>
+  <node name="load_histograms" pkg="stefmap_ros" type="3_atc_load_histograms.py"/>
+
+</launch>
