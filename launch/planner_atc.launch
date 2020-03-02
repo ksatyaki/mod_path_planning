@@ -6,9 +6,11 @@
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
   <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <arg name="folder"/>
   
   <arg name="cliffmap" default="atc_cliff" />
-  <arg name="gmmtmap" default="atc_gmmt" />
+  <arg name="gmmtmap" default="atc_gmmt3m" />
   <arg name="whytemap" default="atc_whyte" />
   <arg name="occmap" default="atc" />
 
@@ -30,6 +32,6 @@
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find mod_path_planning)/launch/srscp.rviz"/>
     
-  <node name="RRTStarMotionPlanner" type="mod_reeds_shepp_rrtstar_planner" pkg="mod_path_planning" launch-prefix="$(arg launch_prefix)"/>
+  <node name="RRTStarMotionPlanner" type="mod_reeds_shepp_rrtstar_planner" pkg="mod_path_planning" launch-prefix="$(arg launch_prefix)" args="$(arg folder)"/>
 
 </launch>

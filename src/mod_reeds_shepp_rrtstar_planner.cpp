@@ -175,7 +175,7 @@ public:
     STeFUpstreamCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::UpstreamCriterionOptimizationObjective(
             planner->ss->getSpaceInformation(),
-            stefmap_client->get(planning_time_, 2, -10, 3, 0, 14, 0.5),
+            stefmap_client->get(planning_time_, 2, -60, 80, -40, 20, 1.0),
             pp.weight_d, pp.weight_q, pp.weight_c));
 
     GMMTUpstreamCostObjective = ob::OptimizationObjectivePtr(
@@ -409,6 +409,14 @@ void modGoalCallback(const mod_path_planning::MoDPlanningGoalConstPtr &msg) {
 int main(int argn, char *args[]) {
   ros::init(argn, args, "mod_path_planning_node");
 
+  // The folder for saving stats and paths.
+  if (argn < 2) {
+    ROS_ERROR("Folder to save stats is missing.");
+    exit(-1);
+  }
+
+  std::string folder(args[1]);
+
   ros::NodeHandle nhandle;
 
   ros::Subscriber mod_planning_sub =
@@ -420,7 +428,8 @@ int main(int argn, char *args[]) {
 
   static int seq = 0;
 
-  std::ofstream statsFile("/home/ksatyaki/.ros/savedPaths/stats.csv", std::ios::out);
+  std::ofstream statsFile((folder + std::string("stats.csv")).c_str(),
+                          std::ios::out);
   if (!statsFile) {
     ROS_ERROR_STREAM("Couldn't open stats file!");
     return -1;
@@ -465,7 +474,8 @@ int main(int argn, char *args[]) {
       // Save path.
       std_msgs::String save_path_msg;
       char fileName[100];
-      sprintf(fileName, "/home/ksatyaki/.ros/savedPaths/%s_%s_%d.path",
+      sprintf(fileName,
+              (folder + std::string("savedPaths/%s_%s_%d.path")).c_str(),
               mod_rs_rrtstar_planner.getMapTypeStr().c_str(),
               goal->upstream ? "_upstream" : "noup", seq++);
       save_path_msg.data = fileName;
@@ -502,8 +512,7 @@ int main(int argn, char *args[]) {
       char costLine[300];
       sprintf(costLine, "%s_%s, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf",
               mod_rs_rrtstar_planner.getMapTypeStr().c_str(),
-              goal->upstream ? "_upstream" : "noup",
-              goal->header.seq,
+              goal->upstream ? "_upstream" : "noup", goal->header.seq,
               mod_rs_rrtstar_planner
                   .getSolutionCostComponents(
                       mod_rs_rrtstar_planner.getOptimizationObjective())
