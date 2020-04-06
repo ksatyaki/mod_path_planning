@@ -4,6 +4,9 @@ init_cmd: |
   source ./setup.sh
 
 windows:
+  - name: mkdir
+    panes:
+      - mv /root/savedPaths /root/savedPaths.old; mkdir /root/savedPaths
   - name: roscore
     panes:
       - roscore
@@ -15,7 +18,7 @@ windows:
 
   - name: planner
     panes:
-      - sleep 60; roslaunch mod_path_planning planner_atc.launch --screen
+      - sleep 60; roslaunch mod_path_planning planner_atc.launch folder:=/root/ --screen
 
   - name: scripts
     panes:
