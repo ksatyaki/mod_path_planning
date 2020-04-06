@@ -22,4 +22,4 @@ windows:
 
   - name: scripts
     panes:
-      - sleep 120; rosrun mod_path_planning simple_test.sh
+      - sleep 120; rosrun mod_path_planning test_case_1.sh
