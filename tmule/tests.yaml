@@ -11,12 +11,12 @@ windows:
 
   - name: stef-map
     panes:
-      - roslaunch mod_path_planning stef_atc.launch screen:=true
+      - roslaunch mod_path_planning stef_atc.launch --screen
 
   - name: planner
     panes:
-      - sleep 20; roslaunch mod_path_planning planner_atc.launch screen:=true
+      - sleep 60; roslaunch mod_path_planning planner_atc.launch --screen
 
   - name: scripts
     panes:
-      - sleep 60; roslaunch mod_path_planning simple_test.sh
+      - sleep 120; rosrun mod_path_planning simple_test.sh
