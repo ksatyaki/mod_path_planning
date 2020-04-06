@@ -18,9 +18,9 @@ windows:
 
   - name: planner
     panes:
-      - sleep 60; roslaunch mod_path_planning planner_atc.launch folder:=/root/ --screen
+      - roslaunch mod_path_planning planner_atc.launch folder:=/root/ --screen
 
   - name: scripts
     panes:
       - sleep 120; rosrun mod_path_planning test_case_1.sh
-      - sleep 120; rosrun mod_path_planning test_case_1.sh
+      - sleep 120; rosrun mod_path_planning test_case_2.sh
