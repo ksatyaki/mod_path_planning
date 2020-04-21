@@ -428,8 +428,11 @@ int main(int argn, char *args[]) {
 
   static int seq = 0;
 
-  std::ofstream statsFile((folder + std::string("stats.csv")).c_str(),
-                          std::ios::out);
+  std::string timeStr = std::to_string(ros::Time::now().toSec());
+
+  std::ofstream statsFile(
+      folder + (std::string("stats-") + timeStr + std::string(".csv")).c_str(),
+      std::ios::out);
   if (!statsFile) {
     ROS_ERROR_STREAM("Couldn't open stats file!");
     return -1;
