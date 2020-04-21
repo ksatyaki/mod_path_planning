@@ -15,7 +15,8 @@ windows:
 
   - name: planner
     panes:
-      - roslaunch mod_path_planning planner_atc.launch folder:=/root/ --screen
+      - mkdir -p /home/ksatyaki/experiments/savedPaths
+      - roslaunch mod_path_planning planner_atc.launch folder:=/home/ksatyaki/experiments/ --screen
 
   - name: scripts
     panes:
