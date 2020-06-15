@@ -80,6 +80,10 @@ protected:
   // How long should we plan
   double planning_time_;
 
+  // Updates
+  long updates_{0};
+
+
   ob::OptimizationObjectivePtr MoDUnawareCostObjective;
   ob::OptimizationObjectivePtr DTCCostObjective;
   ob::OptimizationObjectivePtr DTWCostObjective;
@@ -341,6 +345,10 @@ public:
         planner->ss->getOptimizationObjective());
   }
 
+  long getUpdates () {
+    return updates_;
+  }
+
   void solutionCallback(
       const ompl::base::Planner *planner,
       const std::vector<const ompl::base::State *> &solution_states,
@@ -349,6 +357,8 @@ public:
 
     ROS_INFO_STREAM("New solution found with cost: \x1b[34m"
                     << std::fixed << std::setprecision(2) << cost.value());
+
+    updates_ = updates_ + 1;
 
     auto space_info = planner->getSpaceInformation();
     auto opt_obj =
@@ -495,8 +505,8 @@ int main(int argn, char *args[]) {
                "DTW: %lf, "
                "CLiFFUpstream: %lf, "
                "STeFUpstream: %lf, "
-               //"WHyTeUpstream: %lf."
-               "GMMTUpstream: %lf, ",
+               "GMMTUpstream: %lf, "
+               "Updates: %ld",
                mod_rs_rrtstar_planner
                    .getSolutionCostComponents(
                        mod_rs_rrtstar_planner.getOptimizationObjective())
@@ -509,13 +519,13 @@ int main(int argn, char *args[]) {
                mod_rs_rrtstar_planner.getDTWCost(),
                mod_rs_rrtstar_planner.getCLiFFUpstreamCost(),
                mod_rs_rrtstar_planner.getSTeFUpstreamCost(),
-               // mod_rs_rrtstar_planner.getWHyTeUpstreamCost(),
-               mod_rs_rrtstar_planner.getGMMTUpstreamCost());
+               mod_rs_rrtstar_planner.getGMMTUpstreamCost(),
+               mod_rs_rrtstar_planner.getUpdates());
 
       char costLine[300];
-      sprintf(costLine, "%s_%s, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf",
+      sprintf(costLine, "%s_%s, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %ld",
               mod_rs_rrtstar_planner.getMapTypeStr().c_str(),
-              goal->upstream ? "_upstream" : "noup", goal->header.seq,
+              goal->upstream ? "_upstream" : "noup", seq,
               mod_rs_rrtstar_planner
                   .getSolutionCostComponents(
                       mod_rs_rrtstar_planner.getOptimizationObjective())
@@ -528,7 +538,8 @@ int main(int argn, char *args[]) {
               mod_rs_rrtstar_planner.getDTWCost(),
               mod_rs_rrtstar_planner.getCLiFFUpstreamCost(),
               mod_rs_rrtstar_planner.getSTeFUpstreamCost(),
-              mod_rs_rrtstar_planner.getGMMTUpstreamCost());
+              mod_rs_rrtstar_planner.getGMMTUpstreamCost(),
+              mod_rs_rrtstar_planner.getUpdates());
       statsFile << costLine << std::endl;
     } else {
       ROS_INFO("No goals in queue yet.");
