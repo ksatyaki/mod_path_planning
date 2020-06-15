@@ -22,7 +22,7 @@ start: {x: -15.97, y: -11.0, theta: 1.603}
 goal: {x: -15.343, y: 11.00, theta: 1.586}
 mod_type: 0
 upstream: false
-weight_c: 0.005"
+weight_c: 0.02"
 
 sleep 10
 
@@ -36,7 +36,7 @@ start: {x: -15.97, y: -11.0, theta: 1.603}
 goal: {x: -15.343, y: 11.00, theta: 1.586}
 mod_type: 3
 upstream: false
-weight_c: 0.025"
+weight_c: 0.1"
 
 sleep 10
 
@@ -50,7 +50,7 @@ start: {x: -15.97, y: -11.0, theta: 1.603}
 goal: {x: -15.343, y: 11.00, theta: 1.586}
 mod_type: 0
 upstream: true
-weight_c: 0.025"
+weight_c: 0.1"
 
 sleep 10
 
@@ -64,7 +64,7 @@ start: {x: -15.97, y: -11.0, theta: 1.603}
 goal: {x: -15.343, y: 11.00, theta: 1.586}
 mod_type: 1
 upstream: true
-weight_c: 0.025"
+weight_c: 0.1"
 
 sleep 10
 
@@ -78,4 +78,4 @@ start: {x: -15.97, y: -11.0, theta: 1.603}
 goal: {x: -15.343, y: 11.00, theta: 1.586}
 mod_type: 2
 upstream: true
-weight_c: 0.025"
+weight_c: 0.1"
