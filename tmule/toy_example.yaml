@@ -1,0 +1,25 @@
+session: chitt-testing
+init_cmd: |
+  cd @TMULE_CONFIG_DIR@ || true
+  source ./setup.sh
+
+windows:
+  - name: roscore
+    panes:
+      - roscore
+    check: "rostopic list"
+
+  - name: stef-map
+    panes:
+      - roslaunch mod_path_planning stef_atc.launch --screen
+
+  - name: planner
+    panes:
+      - mkdir -p /home/ksatyaki/experiments/savedPaths
+      - roslaunch mod_path_planning planner_pedsim_warehouse.launch folder:=/home/ksatyaki/experiments/ --screen
+
+  - name: scripts
+    panes:
+      - sleep 60; rosrun mod_path_planning test_case_3.sh 600 10
+      - sleep 120; rosrun mod_path_planning test_case_4.sh 600 10
+      - sleep 180; rosrun mod_path_planning test_case_5.sh 600 10
