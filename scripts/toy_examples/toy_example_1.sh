@@ -1,7 +1,8 @@
 #!/bin/zsh
 
-#Setting goal: Frame:map, Position(47.690, -18.848, 0.000), Orientation(0.000, 0.000, 0.924, -0.383) = Angle: -2.356
-#Setting goal: Frame:map, Position(-19,575, 12,390, 0,000), Orientation(0,000, 0,000, 0,915, 0,403) = Angle: 2,313
+# Setting goal: Frame:map, Position(5,731, 4,705, 0,000), Orientation(0,000, 0,000, 0,728, 0,685) = Angle: 1,632
+# Setting goal: Frame:map, Position(4,876, 22,589, 0,000), Orientation(0,000, 0,000, 0,730, 0,684) = Angle: 1,635
+
 
 
 rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
@@ -10,8 +11,8 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
-start: {x: 47.690, y: -18.848, theta: -2.356}
-goal: {x: -19.575, y: 12.390, theta: 2.313}
+start: {x: 5.731, y: 4.705, theta: 1.632}
+goal: {x: 4.876, y: 22,589, theta: 1.632}
 mod_type: 0
 upstream: false
 weight_c: 0.00"
@@ -22,8 +23,8 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
-start: {x: 47.690, y: -18.848, theta: -2.356}
-goal: {x: -19.575, y: 12.390, theta: 2.313}
+start: {x: 5.731, y: 4.705, theta: 1.632}
+goal: {x: 4.876, y: 22,589, theta: 1.632}
 mod_type: 0
 upstream: false
 weight_c: 0.02"
@@ -36,8 +37,8 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
-start: {x: 47.690, y: -18.848, theta: -2.356}
-goal: {x: -19.575, y: 12.390, theta: 2.313}
+start: {x: 5.731, y: 4.705, theta: 1.632}
+goal: {x: 4.876, y: 22,589, theta: 1.632}
 mod_type: 0
 upstream: true
 weight_c: 0.1"
@@ -50,8 +51,8 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
-start: {x: 47.690, y: -18.848, theta: -2.356}
-goal: {x: -19.575, y: 12.390, theta: 2.313}
+start: {x: 5.731, y: 4.705, theta: 1.632}
+goal: {x: 4.876, y: 22,589, theta: 1.632}
 mod_type: 2
 upstream: true
 weight_c: 0.1"
