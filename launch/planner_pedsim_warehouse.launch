@@ -9,10 +9,10 @@
 
   <arg name="folder"/>
   
-  <arg name="cliffmap" default="atc_cliff" />
-  <arg name="gmmtmap" default="atc_gmmt3m" />
+  <arg name="cliffmap" default="pedsim_warehouse_cliff" />
+  <arg name="gmmtmap" default="pedsim_warehouse_gmmt" />
   <arg name="whytemap" default="atc_whyte" />
-  <arg name="occmap" default="atc" />
+  <arg name="occmap" default="pedsim_warehouse" />
 
   <arg name="cliff" default="true"/>
   <arg name="stef" default="true"/>
