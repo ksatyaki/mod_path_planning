@@ -13,7 +13,7 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
 times: $2
 planning_time_limit: $1
 start: {x: 29,369, y: 10.420, theta: 1.632}
-goal: {x: 29,369, y: 22,589, theta: 1.632}
+goal: {x: 29,369, y: 22.589, theta: 1.632}
 mod_type: 0
 upstream: false
 weight_c: 0.00"
@@ -25,7 +25,7 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
 times: $2
 planning_time_limit: $1
 start: {x: 5.731, y: 10.420, theta: 1.632}
-goal: {x: 4.876, y: 22,589, theta: 1.632}
+goal: {x: 4.876, y: 22.589, theta: 1.632}
 mod_type: 0
 upstream: false
 weight_c: 0.02"
@@ -39,7 +39,7 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
 times: $2
 planning_time_limit: $1
 start: {x: 29,369, y: 10.420, theta: 1.632}
-goal: {x: 29,369, y: 22,589, theta: 1.632}
+goal: {x: 29,369, y: 22.589, theta: 1.632}
 mod_type: 0
 upstream: true
 weight_c: 0.1"
@@ -53,7 +53,7 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
 times: $2
 planning_time_limit: $1
 start: {x: 29,369, y: 10.420, theta: 1.632}
-goal: {x: 29,369, y: 22,589, theta: 1.632}
+goal: {x: 29,369, y: 22.589, theta: 1.632}
 mod_type: 2
 upstream: true
 weight_c: 0.1"
