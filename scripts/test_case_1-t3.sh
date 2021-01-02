@@ -1,8 +1,8 @@
-#!/bin/zsh
+ #!/bin/zsh
 
 rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   seq: 0
-  stamp: {secs: 1352894400, nsecs: 0}
+  stamp: {secs: 1352890000, nsecs: 0}
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
@@ -14,7 +14,7 @@ weight_c: 0.00"
 
 rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   seq: 0
-  stamp: {secs: 1352894400, nsecs: 0}
+  stamp: {secs: 1352890000, nsecs: 0}
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
@@ -28,7 +28,7 @@ sleep 10
 
 rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:                                                                                              
   seq: 0
-  stamp: {secs: 1352894400, nsecs: 0}
+  stamp: {secs: 1352890000, nsecs: 0}
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
@@ -42,7 +42,7 @@ sleep 10
 
 rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:                                                                                              
   seq: 0
-  stamp: {secs: 1352894400, nsecs: 0}
+  stamp: {secs: 1352890000, nsecs: 0}
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
@@ -56,7 +56,7 @@ sleep 10
 
 rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:                                                                                              
   seq: 0
-  stamp: {secs: 1352894400, nsecs: 0}
+  stamp: {secs: 1352890000, nsecs: 0}
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
@@ -70,7 +70,7 @@ sleep 10
 
 rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:                                                                                              
   seq: 0
-  stamp: {secs: 1352894400, nsecs: 0}
+  stamp: {secs: 1352890000, nsecs: 0}
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
