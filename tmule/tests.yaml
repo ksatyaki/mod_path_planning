@@ -20,6 +20,6 @@ windows:
 
   - name: scripts
     panes:
-      - sleep 60; rosrun mod_path_planning test_case_2.sh 600 10
-      - sleep 120; rosrun mod_path_planning test_case_2-t2.sh 600 10
-      - sleep 180; rosrun mod_path_planning test_case_2-t3.sh 600 10
+      - sleep 60; rosrun mod_path_planning test_case_4-t1.sh 600 10
+      - sleep 120; rosrun mod_path_planning test_case_4-t2.sh 600 10
+      - sleep 180; rosrun mod_path_planning test_case_4-t3.sh 600 10
