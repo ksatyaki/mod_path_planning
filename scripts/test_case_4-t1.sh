@@ -26,7 +26,7 @@ weight_c: 0.02"
 
 sleep 10
 
-rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:                                                                                              
+rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   seq: 0
   stamp: {secs: 1352866100, nsecs: 0}
   frame_id: 'map'
@@ -40,7 +40,7 @@ weight_c: 0.1"
 
 sleep 10
 
-rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:                                                                                              
+rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   seq: 0
   stamp: {secs: 1352866100, nsecs: 0}
   frame_id: 'map'

@@ -18,8 +18,8 @@ windows:
       - mkdir -p /home/ksatyaki/experiments/savedPaths
       - roslaunch mod_path_planning planner_atc.launch folder:=/home/ksatyaki/experiments/ --screen
 
-  - name: corridor-3
+  - name: corridor-6
     panes:
-      - sleep 060; rosrun mod_path_planning test_case_3-t1.sh 1800 10
-      - sleep 120; rosrun mod_path_planning test_case_3-t2.sh 1800 10
-      - sleep 180; rosrun mod_path_planning test_case_3-t3.sh 1800 10
+      - sleep 240; rosrun mod_path_planning test_case_6-t1.sh 1800 10
+      - sleep 300; rosrun mod_path_planning test_case_6-t2.sh 1800 10
+      - sleep 360; rosrun mod_path_planning test_case_6-t3.sh 1800 10
