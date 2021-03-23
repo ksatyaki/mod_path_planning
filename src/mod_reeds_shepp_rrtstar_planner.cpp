@@ -83,7 +83,6 @@ protected:
   // Updates
   long updates_{0};
 
-
   ob::OptimizationObjectivePtr MoDUnawareCostObjective;
   ob::OptimizationObjectivePtr DTCCostObjective;
   ob::OptimizationObjectivePtr DTWCostObjective;
@@ -345,9 +344,7 @@ public:
         planner->ss->getOptimizationObjective());
   }
 
-  long getUpdates () {
-    return updates_;
-  }
+  long getUpdates() { return updates_; }
 
   void solutionCallback(
       const ompl::base::Planner *planner,
@@ -488,7 +485,8 @@ int main(int argn, char *args[]) {
       std_msgs::String save_path_msg;
       char fileName[100];
       sprintf(fileName,
-              (folder + std::string("savedPaths/%s_%s_%d.path")).c_str(),
+              (folder + std::string("savedPaths/%lf-%s_%s_%d.path")).c_str(),
+              goal->header.stamp.toSec(),
               mod_rs_rrtstar_planner.getMapTypeStr().c_str(),
               goal->upstream ? "_upstream" : "noup", seq++);
       save_path_msg.data = fileName;
