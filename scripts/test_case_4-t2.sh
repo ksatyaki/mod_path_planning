@@ -8,6 +8,6 @@ times: $2
 planning_time_limit: $1
 goal: {x: -3.85, y: -6.82, theta: -0.8203}
 start: {x: 21.471, y: -17.647, theta: 0.733}
-mod_type: 2
+mod_type: 1
 upstream: true
 weight_c: 0.1"

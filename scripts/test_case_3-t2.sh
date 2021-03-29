@@ -11,6 +11,6 @@ times: 30
 planning_time_limit: $1
 start: {x: 47.690, y: -18.848, theta: -2.356}
 goal: {x: -19.575, y: 12.390, theta: 2.313}
-mod_type: 2
+mod_type: 1
 upstream: true
 weight_c: 0.1"
