@@ -1,0 +1,25 @@
+session: chitt-testing
+init_cmd: |
+  cd @TMULE_CONFIG_DIR@ || true
+  source ./setup.sh
+
+windows:
+  - name: roscore
+    panes:
+      - roscore
+    check: "rostopic list"
+
+  - name: stef-map
+    panes:
+      - roslaunch mod_path_planning stef_atc.launch --screen
+
+  - name: planner
+    panes:
+      - roslaunch mod_path_planning map_servers.launch --screen
+#   Add a line to launch your planner and the costmap nodes.
+
+#  - name: get-path-service-caller
+#   Just make an "sh" file with a command line call to get_path_service
+#   These Start and Goal locations should work well:
+#   start: {x: 11.5, y: -5.0, theta: 2.604}
+#   goal: {x: -25.00, y: 3.00, theta: -1.999}

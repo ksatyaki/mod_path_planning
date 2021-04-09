@@ -20,6 +20,6 @@ windows:
 
   - name: corridor-3
     panes:
-  #   - sleep 060; rosrun mod_path_planning test_case_3-t1.sh 1800 10
+      - sleep 060; rosrun mod_path_planning test_case_3-t1.sh 1800 10
       - sleep 60; rosrun mod_path_planning test_case_3-t2.sh 1800 10
       - sleep 120; rosrun mod_path_planning test_case_3-t3.sh 1800 10
