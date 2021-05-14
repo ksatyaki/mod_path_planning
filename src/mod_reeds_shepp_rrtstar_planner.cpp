@@ -178,7 +178,7 @@ public:
     STeFUpstreamCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::UpstreamCriterionOptimizationObjective(
             planner->ss->getSpaceInformation(),
-            stefmap_client->get(planning_time_, 2, -60, 80, -40, 20, 1.0),
+            stefmap_client->get(planning_time_, 2),
             pp.weight_d, pp.weight_q, pp.weight_c));
 
     GMMTUpstreamCostObjective = ob::OptimizationObjectivePtr(
