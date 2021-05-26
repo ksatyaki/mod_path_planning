@@ -567,7 +567,7 @@ int main(int argn, char *args[]) {
       char costsFileLine[300];
       for (int i = 0; i < all_costs.size(); i++) {
         const auto cost = all_costs[i];
-        sprintf(costsFileLine, "%ld %lf, %lf, %lf", cost.cost_d_, cost.cost_q_, cost.cost_c_);
+        sprintf(costsFileLine, "%ld %lf, %lf, %lf", i, cost.cost_d_, cost.cost_q_, cost.cost_c_);
         pathStatsFile << costsFileLine;
       }
 
