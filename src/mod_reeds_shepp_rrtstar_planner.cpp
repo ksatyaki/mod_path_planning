@@ -23,7 +23,6 @@
 
 #include <costmap_2d/footprint.h>
 #include <geometry_msgs/PoseArray.h>
-#include <mod_path_planning/ComputePathCost.h>
 #include <mod_path_planning/MoDPlanningGoal.h>
 #include <nav_msgs/GetMap.h>
 #include <nav_msgs/OccupancyGrid.h>
