@@ -23,6 +23,7 @@
 
 #include <costmap_2d/footprint.h>
 #include <geometry_msgs/PoseArray.h>
+#include <mod_path_planning/ComputePathCost.h>
 #include <mod_path_planning/MoDPlanningGoal.h>
 #include <nav_msgs/GetMap.h>
 #include <nav_msgs/OccupancyGrid.h>
@@ -178,8 +179,8 @@ public:
     STeFUpstreamCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::UpstreamCriterionOptimizationObjective(
             planner->ss->getSpaceInformation(),
-            stefmap_client->get(planning_time_, 2),
-            pp.weight_d, pp.weight_q, pp.weight_c));
+            stefmap_client->get(planning_time_, 2), pp.weight_d, pp.weight_q,
+            pp.weight_c));
 
     GMMTUpstreamCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::UpstreamCriterionOptimizationObjective(
@@ -318,6 +319,22 @@ public:
     for (size_t i = 0; i < (states.size() - 1); i++) {
       auto this_cost = opt_obj->motionCost(states[i], states[i + 1]);
       all_costs = all_costs + opt_obj->getLastCost();
+    }
+
+    return all_costs;
+  }
+
+  std::vector<ompl::mod::Cost>
+  getSolutionCostComponentsAll(ompl::mod::MoDOptimizationObjectivePtr opt_obj) {
+    auto space_info = this->planner->ss->getSpaceInformation();
+
+    std::vector<ompl::base::State *> states =
+        planner->ss->getSolutionPath().getStates();
+
+    std::vector<ompl::mod::Cost> all_costs;
+    for (size_t i = 0; i < (states.size() - 1); i++) {
+      auto this_cost = opt_obj->motionCost(states[i], states[i + 1]);
+      all_costs.push_back(opt_obj->getLastCost());
     }
 
     return all_costs;
@@ -492,6 +509,14 @@ int main(int argn, char *args[]) {
       save_path_msg.data = fileName;
       mod_rs_rrtstar_planner.savePathCallback(save_path_msg);
 
+      std::string pathStatsFileName = fileName;
+      pathStatsFileName.replace(pathStatsFileName.find_last_of(".path"),
+                                pathStatsFileName.length() - 1, ".costs");
+      auto all_costs = mod_rs_rrtstar_planner.getSolutionCostComponentsAll(
+          mod_rs_rrtstar_planner.getOptimizationObjective());
+      std::ofstream pathStatsFile(pathStatsFileName, std::ios::out);
+      ROS_INFO("Path stats are saved to: %s", pathStatsFileName.c_str());
+
       // Save statistics.
       ROS_INFO("Solution total cost: %lf",
                mod_rs_rrtstar_planner.getSolutionCost(
@@ -539,6 +564,16 @@ int main(int argn, char *args[]) {
               mod_rs_rrtstar_planner.getGMMTUpstreamCost(),
               mod_rs_rrtstar_planner.getUpdates());
       statsFile << costLine << std::endl;
+
+      char costsFileLine[300];
+      for (int i = 0; i < all_costs.size(); i++) {
+        const auto cost = all_costs[i];
+        sprintf(costsFileLine, "%ld %lf, %lf, %lf", cost.cost_d_, cost.cost_q_, cost.cost_c_);
+        pathStatsFile << costsFileLine;
+      }
+
+      pathStatsFile.close();
+
     } else {
       ROS_INFO("No goals in queue yet.");
       rate.sleep();

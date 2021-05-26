@@ -48,13 +48,6 @@ add_message_files(
   MoDPlanningGoal.msg
 )
 
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
-
 generate_messages(
   DEPENDENCIES
   geometry_msgs
