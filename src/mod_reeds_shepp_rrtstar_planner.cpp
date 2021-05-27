@@ -92,6 +92,10 @@ protected:
   ob::OptimizationObjectivePtr WHyTeUpstreamCostObjective;
 
 public:
+  boost::shared_ptr<std::vector<geometry_msgs::Pose2D>> getSolutionPosesPtr() {
+    return solution_poses_ptr;
+  }
+
   MoDReedsSheppRRTStarPlanner(ompl::mod::MapType map_type, double time = 0.0,
                               double planning_time_limit = 30.0,
                               double weight_c = 0.2, bool upstream = false)
@@ -323,20 +327,8 @@ public:
     return all_costs;
   }
 
-  std::vector<ompl::mod::Cost>
-  getSolutionCostComponentsAll(ompl::mod::MoDOptimizationObjectivePtr opt_obj) {
-    auto space_info = this->planner->ss->getSpaceInformation();
-
-    std::vector<ompl::base::State *> states =
-        planner->ss->getSolutionPath().getStates();
-
-    std::vector<ompl::mod::Cost> all_costs;
-    for (size_t i = 0; i < (states.size() - 1); i++) {
-      auto this_cost = opt_obj->motionCost(states[i], states[i + 1]);
-      all_costs.push_back(opt_obj->getLastCost());
-    }
-
-    return all_costs;
+  std::vector<ompl::mod::Cost> getSolutionCostComponentsAll() {
+    return planner->getSolutionCost();
   }
 
   void savePathCallback(const std_msgs::String &msg) {
@@ -511,8 +503,7 @@ int main(int argn, char *args[]) {
       std::string pathStatsFileName = fileName;
       pathStatsFileName.replace(pathStatsFileName.find(".path"),
                                 pathStatsFileName.length() - 1, ".costs");
-      auto all_costs = mod_rs_rrtstar_planner.getSolutionCostComponentsAll(
-          mod_rs_rrtstar_planner.getOptimizationObjective());
+      auto all_costs = mod_rs_rrtstar_planner.getSolutionCostComponentsAll();
       std::ofstream pathStatsFile(pathStatsFileName, std::ios::out);
       ROS_INFO("Path stats are saved to: %s", pathStatsFileName.c_str());
 
@@ -565,9 +556,13 @@ int main(int argn, char *args[]) {
       statsFile << costLine << std::endl;
 
       char costsFileLine[300];
+      ROS_INFO("Solution size: %ld, Cost size: %ld",
+               mod_rs_rrtstar_planner.getSolutionPosesPtr()->size(),
+               all_costs.size());
       for (long int i = 0; i < all_costs.size(); i++) {
         const auto cost = all_costs[i];
-        sprintf(costsFileLine, "%ld, %lf, %lf, %lf\n", i, cost.cost_d_, cost.cost_q_, cost.cost_c_);
+        sprintf(costsFileLine, "%ld, %lf, %lf, %lf\n", i, cost.cost_d_,
+                cost.cost_q_, cost.cost_c_);
         pathStatsFile << costsFileLine;
       }
 
