@@ -509,7 +509,7 @@ int main(int argn, char *args[]) {
       mod_rs_rrtstar_planner.savePathCallback(save_path_msg);
 
       std::string pathStatsFileName = fileName;
-      pathStatsFileName.replace(pathStatsFileName.find_last_of(".path"),
+      pathStatsFileName.replace(pathStatsFileName.find(".path"),
                                 pathStatsFileName.length() - 1, ".costs");
       auto all_costs = mod_rs_rrtstar_planner.getSolutionCostComponentsAll(
           mod_rs_rrtstar_planner.getOptimizationObjective());
@@ -565,9 +565,9 @@ int main(int argn, char *args[]) {
       statsFile << costLine << std::endl;
 
       char costsFileLine[300];
-      for (int i = 0; i < all_costs.size(); i++) {
+      for (long int i = 0; i < all_costs.size(); i++) {
         const auto cost = all_costs[i];
-        sprintf(costsFileLine, "%ld %lf, %lf, %lf", i, cost.cost_d_, cost.cost_q_, cost.cost_c_);
+        sprintf(costsFileLine, "%ld, %lf, %lf, %lf\n", i, cost.cost_d_, cost.cost_q_, cost.cost_c_);
         pathStatsFile << costsFileLine;
       }
 

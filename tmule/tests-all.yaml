@@ -20,7 +20,7 @@ windows:
 
   - name: corridor-all
     panes:
-      - sleep 30; rosrun mod_path_planning test_case_3-t1.sh 1800 10; sleep 30; rosrun mod_path_planning test_case_3-t2.sh 1800 10; sleep 30; rosrun mod_path_planning test_case_3-t3.sh 900 10
-      - sleep 120; rosrun mod_path_planning test_case_4-t1.sh 1800 10; sleep 30; rosrun mod_path_planning test_case_4-t2.sh 1800 10; sleep 30; rosrun mod_path_planning test_case_4-t3.sh 900 10
-      - sleep 210; rosrun mod_path_planning test_case_1-t1.sh 1800 10; sleep 30; rosrun mod_path_planning test_case_1-t2.sh 1800 10; sleep 30; rosrun mod_path_planning test_case_1-t3.sh 900 10
-      - sleep 300; rosrun mod_path_planning test_case_2-t1.sh 1800 10; sleep 30; rosrun mod_path_planning test_case_2-t2.sh 1800 10; sleep 30; rosrun mod_path_planning test_case_2-t3.sh 900 10
+      - sleep 60; rosrun mod_path_planning test_case_5-t1.sh 900 10; rosrun mod_path_planning test_case_5-t2.sh 900 10; rosrun mod_path_planning test_case_5-t3.sh 900 10
+      - sleep 90; rosrun mod_path_planning test_case_6-t1.sh 900 10; rosrun mod_path_planning test_case_6-t2.sh 900 10; rosrun mod_path_planning test_case_5-t3.sh 900 10
+      - sleep 120; rosrun mod_path_planning test_case_3-t1.sh 900 10; rosrun mod_path_planning test_case_3-t2.sh 900 10; rosrun mod_path_planning test_case_3-t3.sh 900 10
+      - sleep 150; rosrun mod_path_planning test_case_4-t1.sh 900 10; rosrun mod_path_planning test_case_4-t2.sh 900 10; rosrun mod_path_planning test_case_4-t3.sh 900 10

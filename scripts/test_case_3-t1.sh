@@ -28,22 +28,6 @@ mod_type: 0
 upstream: false
 weight_c: 0.02"
 
-sleep 10
-
-rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:                                                                                              
-  seq: 0
-  stamp: {secs: 1352866100, nsecs: 0}
-  frame_id: 'map'
-times: $2
-planning_time_limit: $1
-start: {x: 47.690, y: -18.848, theta: -2.356}
-goal: {x: -19.575, y: 12.390, theta: 2.313}
-mod_type: 3
-upstream: false
-weight_c: 0.1"
-
-sleep 10
-
 rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:                                                                                              
   seq: 0
   stamp: {secs: 1352866100, nsecs: 0}
@@ -56,8 +40,6 @@ mod_type: 0
 upstream: true
 weight_c: 0.1"
 
-sleep 10
-
 rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:                                                                                              
   seq: 0
   stamp: {secs: 1352866100, nsecs: 0}
@@ -69,8 +51,6 @@ goal: {x: -19.575, y: 12.390, theta: 2.313}
 mod_type: 1
 upstream: true
 weight_c: 0.1"
-
-sleep 10
 
 rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:                                                                                              
   seq: 0
