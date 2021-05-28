@@ -356,7 +356,7 @@ public:
 
   void solutionCallback(
       const ompl::base::Planner *planner,
-      const std::vector<const ompl::base::State *> &solution_states,
+      const std::vector<const ompl::base::State*> &solution_states,
       const ompl::base::Cost cost, const geometry_msgs::Pose2D &start,
       const geometry_msgs::Pose2D &goal) {
 
