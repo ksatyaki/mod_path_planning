@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<launch>
+    <arg name="save" default="false"/>
+    <node name="fremen" pkg="fremenarray" type="fremenarray"/>
+    <node name="load_histograms" pkg="stefmap_ros" type="atc_load_histograms.py" unless="$(arg save)"/>
+    <node name="create_histograms" pkg="stefmap_ros" type="atc_create_histograms.py" if="$(arg save)"/>
+</launch>
