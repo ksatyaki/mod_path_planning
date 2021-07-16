@@ -24,14 +24,19 @@
   <rosparam file="$(find mod_path_planning)/param/rrtstar_motion_planner_params.yaml" command="load" subst_value="true"/>
   
   <!-- Nodes -->
-  <node name="map_server" pkg="map_server" type="map_server" args="$(find mod_path_planning)/maps/$(arg occmap).yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(find mod_path_planning)/maps/$(arg occmap).yaml">
+    <param name="frame_id" value="map_laser2d" />
+  </node>
 
-  <node if="$(arg cliff)" name="cliffmap_server" pkg="cliffmap_ros" type="cliffmap_server" args="$(find mod_path_planning)/mod_maps/$(arg cliffmap).xml"/>
+  <node if="$(arg cliff)" name="cliffmap_server" pkg="cliffmap_ros" type="cliffmap_server" args="$(find mod_path_planning)/mod_maps/$(arg cliffmap).xml" launch-prefix="$(arg launch_prefix)">
+          <param name="map_frame_id" value="map_laser2d" />
+          <param name="frame_id" value="map_laser2d" />
+  </node>
   <node if="$(arg gmmt)" name="gmmtmap_server" pkg="gmmtmap_ros" type="gmmtmap_server" args="$(find mod_path_planning)/mod_maps/$(arg gmmtmap).xml"/>
   <node if="$(arg whyte)" name="whytemap_server" pkg="whytemap_ros" type="whytemap_server" args="$(find mod_path_planning)/mod_maps/$(arg whytemap).xml"/>
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find mod_path_planning)/launch/srscp.rviz"/>
     
-  <node name="RRTStarMotionPlanner" type="mod_reeds_shepp_rrtstar_planner" pkg="mod_path_planning" launch-prefix="$(arg launch_prefix)" args="$(arg folder)"/>
+  <node name="RRTStarMotionPlanner" type="mod_reeds_shepp_rrtstar_planner" pkg="mod_path_planning" args="$(arg folder)"/>
 
 </launch>
