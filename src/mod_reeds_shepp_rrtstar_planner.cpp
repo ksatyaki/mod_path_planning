@@ -26,7 +26,6 @@
 #include <mod_path_planning/MoDPlanningGoal.h>
 #include <nav_msgs/GetMap.h>
 #include <nav_msgs/OccupancyGrid.h>
-#include <nav_msgs/Path.h>
 #include <std_msgs/Empty.h>
 #include <std_msgs/String.h>
 
@@ -44,6 +43,8 @@
 #include "ompl/mod/objectives/DTWOptimizationObjective.h"
 #include "ompl/mod/objectives/MoDOptimizationObjective.h"
 #include "ompl/mod/objectives/UpstreamCriterionOptimizationObjective.h"
+
+#include <ompl/base/samplers/InformedStateSampler.h>
 
 std::queue<mod_path_planning::MoDPlanningGoalConstPtr> goal_queue_;
 std::mutex resource_mutex_;
@@ -77,11 +78,15 @@ protected:
   boost::shared_ptr<ompl_planners_ros::MultipleCirclesReedsSheppCarPlanner>
       planner;
 
+  ompl_planners_ros::Visualization viz_;
+
   // How long should we plan
   double planning_time_;
 
   // Updates
   long updates_{0};
+
+  std::shared_ptr<ompl::base::InformedStateSampler> infSamplerPtr;
 
   ob::OptimizationObjectivePtr MoDUnawareCostObjective;
   ob::OptimizationObjectivePtr DTCCostObjective;
@@ -354,9 +359,12 @@ public:
 
   long getUpdates() { return updates_; }
 
+  /**
+   * This function is called whenever a new solution is found!
+   */
   void solutionCallback(
       const ompl::base::Planner *planner,
-      const std::vector<const ompl::base::State*> &solution_states,
+      const std::vector<const ompl::base::State *> &solution_states,
       const ompl::base::Cost cost, const geometry_msgs::Pose2D &start,
       const geometry_msgs::Pose2D &goal) {
 
@@ -409,6 +417,8 @@ public:
     }
 
     ROS_INFO("Solution total cost: %lf", total_cost);
+
+    viz_.publishSolutionPath(copy_solution_states);
   }
 };
 
