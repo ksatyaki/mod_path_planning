@@ -11,8 +11,7 @@ windows:
 
   - name: stef-map
     panes:
-      - roslaunch mod_path_planning fremen.launch --screen
-      - sleep 3; roslaunch mod_path_planning stef_atc.launch --screen
+      - roslaunch mod_path_planning stef_atc.launch --screen
 
   - name: planner
     panes:
