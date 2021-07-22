@@ -25,14 +25,16 @@
   
   <!-- Nodes -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(find mod_path_planning)/maps/$(arg occmap).yaml">
-    <param name="frame_id" value="map_laser2d" />
+    <param name="frame_id" value="map" />
   </node>
 
   <node if="$(arg cliff)" name="cliffmap_server" pkg="cliffmap_ros" type="cliffmap_server" args="$(find mod_path_planning)/mod_maps/$(arg cliffmap).xml" launch-prefix="$(arg launch_prefix)">
-          <param name="map_frame_id" value="map_laser2d" />
-          <param name="frame_id" value="map_laser2d" />
+          <param name="map_frame_id" value="map" />
+          <param name="frame_id" value="map" />
   </node>
-  <node if="$(arg gmmt)" name="gmmtmap_server" pkg="gmmtmap_ros" type="gmmtmap_server" args="$(find mod_path_planning)/mod_maps/$(arg gmmtmap).xml"/>
+  <node if="$(arg gmmt)" name="gmmtmap_server" pkg="gmmtmap_ros" type="gmmtmap_server" args="$(find mod_path_planning)/mod_maps/$(arg gmmtmap).xml">
+        <param name="frame_id" value="map" />
+  </node>
   <node if="$(arg whyte)" name="whytemap_server" pkg="whytemap_ros" type="whytemap_server" args="$(find mod_path_planning)/mod_maps/$(arg whytemap).xml"/>
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find mod_path_planning)/launch/srscp.rviz"/>

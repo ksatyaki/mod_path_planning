@@ -8,21 +8,21 @@
   
   <arg name="cliffmap" default="atc_cliff" />
   <arg name="gmmtmap" default="atc_gmmt3m" />
-  <arg name="whytemap" default="atc_whyte" />
   <arg name="occmap" default="atc" />
 
   <arg name="cliff" default="true"/>
   <arg name="stef" default="true"/>
   <arg name="gmmt" default="true"/>
-  <arg name="whyte" default="false"/>
 
   <!-- Nodes -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(find mod_path_planning)/maps/$(arg occmap).yaml"/>
 
-  <node if="$(arg cliff)" name="cliffmap_server" pkg="cliffmap_ros" type="cliffmap_server" args="$(find mod_path_planning)/mod_maps/$(arg cliffmap).xml"/>
-  <node if="$(arg gmmt)" name="gmmtmap_server" pkg="gmmtmap_ros" type="gmmtmap_server" args="$(find mod_path_planning)/mod_maps/$(arg gmmtmap).xml"/>
-  <node if="$(arg whyte)" name="whytemap_server" pkg="whytemap_ros" type="whytemap_server" args="$(find mod_path_planning)/mod_maps/$(arg whytemap).xml"/>
-  <node if="$(arg stef)" name="stefmap_server" pkg="stefmap_ros" type="stefmap_server.py" />
+  <node if="$(arg cliff)" name="cliffmap_server" pkg="cliffmap_ros" type="cliffmap_server" args="$(find mod_path_planning)/mod_maps/$(arg cliffmap).xml">
+    <param name="frame_id" value="map" />
+  </node>
+  <node if="$(arg gmmt)" name="gmmtmap_server" pkg="gmmtmap_ros" type="gmmtmap_server" args="$(find mod_path_planning)/mod_maps/$(arg gmmtmap).xml">
+    <param name="frame_id" value="map" />
+  </node>
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find mod_path_planning)/launch/srscp.rviz"/>
 
