@@ -28,7 +28,7 @@
     <param name="frame_id" value="map" />
   </node>
 
-  <node if="$(arg cliff)" name="cliffmap_server" pkg="cliffmap_ros" type="cliffmap_server" args="$(find mod_path_planning)/mod_maps/$(arg cliffmap).xml" launch-prefix="$(arg launch_prefix)">
+  <node if="$(arg cliff)" name="cliffmap_server" pkg="cliffmap_ros" type="cliffmap_server" args="$(find mod_path_planning)/mod_maps/$(arg cliffmap).xml">
           <param name="map_frame_id" value="map" />
           <param name="frame_id" value="map" />
   </node>
@@ -39,6 +39,6 @@
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find mod_path_planning)/launch/srscp.rviz"/>
     
-  <node name="RRTStarMotionPlanner" type="mod_reeds_shepp_rrtstar_planner" pkg="mod_path_planning" args="$(arg folder)"/>
+  <node name="RRTStarMotionPlanner" type="mod_reeds_shepp_rrtstar_planner" pkg="mod_path_planning" args="$(arg folder)" launch-prefix="$(arg launch_prefix)"/>
 
 </launch>

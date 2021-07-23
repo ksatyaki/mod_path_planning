@@ -406,18 +406,6 @@ public:
     }
     copy_solution_states.insert(copy_solution_states.begin(), start_state);
 
-    // Compute costs.
-    ompl::mod::Cost total_path_cost;
-    double total_cost = 0.0;
-    for (size_t i = 0; i < (copy_solution_states.size() - 1); i++) {
-      auto this_cost = opt_obj->motionCost(copy_solution_states[i],
-                                           copy_solution_states[i + 1]);
-      total_cost = total_cost + this_cost.value();
-      total_path_cost = total_path_cost + opt_obj->getLastCost();
-    }
-
-    ROS_INFO("Solution total cost: %lf", total_cost);
-
     viz_.publishSolutionPath(copy_solution_states);
   }
 };
@@ -517,33 +505,6 @@ int main(int argn, char *args[]) {
       std::ofstream pathStatsFile(pathStatsFileName, std::ios::out);
       ROS_INFO("Path stats are saved to: %s", pathStatsFileName.c_str());
 
-      // Save statistics.
-      ROS_INFO("Solution total cost: %lf",
-               mod_rs_rrtstar_planner.getSolutionCost(
-                   mod_rs_rrtstar_planner.getOptimizationObjective()));
-      ROS_INFO("Solution cost components: "
-               "cost_d: %lf, "
-               "cost_q: %lf, "
-               "DTC: %lf, "
-               "DTW: %lf, "
-               "CLiFFUpstream: %lf, "
-               "STeFUpstream: %lf, "
-               "GMMTUpstream: %lf, "
-               "Updates: %ld",
-               mod_rs_rrtstar_planner
-                   .getSolutionCostComponents(
-                       mod_rs_rrtstar_planner.getOptimizationObjective())
-                   .cost_d_,
-               mod_rs_rrtstar_planner
-                   .getSolutionCostComponents(
-                       mod_rs_rrtstar_planner.getOptimizationObjective())
-                   .cost_q_,
-               mod_rs_rrtstar_planner.getDTCCost(),
-               mod_rs_rrtstar_planner.getDTWCost(),
-               mod_rs_rrtstar_planner.getCLiFFUpstreamCost(),
-               mod_rs_rrtstar_planner.getSTeFUpstreamCost(),
-               mod_rs_rrtstar_planner.getGMMTUpstreamCost(),
-               mod_rs_rrtstar_planner.getUpdates());
 
       char costLine[300];
       sprintf(costLine, "%s_%s, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %ld",
@@ -566,9 +527,6 @@ int main(int argn, char *args[]) {
       statsFile << costLine << std::endl;
 
       char costsFileLine[300];
-      ROS_INFO("Solution size: %ld, Cost size: %ld",
-               mod_rs_rrtstar_planner.getSolutionPosesPtr()->size(),
-               all_costs.size());
       for (long int i = 0; i < all_costs.size(); i++) {
         const auto cost = all_costs[i];
         sprintf(costsFileLine, "%ld, %lf, %lf, %lf\n", i, cost.cost_d_,
