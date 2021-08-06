@@ -16,41 +16,38 @@
  *   along with ompl_planners_ros.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <mutex>
-
-#include <ros/console.h>
-#include <ros/ros.h>
+#include <ompl_planners_ros/mc_reeds_shepp_car_planner.hpp>
 
 #include <costmap_2d/footprint.h>
 #include <geometry_msgs/PoseArray.h>
 #include <mod_path_planning/MoDPlanningGoal.h>
+#include <mrpt/math/CPolygon.h>
 #include <nav_msgs/GetMap.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <ompl/base/samplers/InformedStateSampler.h>
+#include <ros/console.h>
+#include <ros/ros.h>
 #include <std_msgs/Empty.h>
 #include <std_msgs/String.h>
 
-#include <mrpt/math/CPolygon.h>
-
-#include "ompl_planners_ros/mc_reeds_shepp_car_planner.hpp"
-#include "ompl_planners_ros/visualization.hpp"
-
 #include <cliffmap_ros/cliffmap.hpp>
 #include <gmmtmap_ros/gmmtmap.hpp>
+#include <mutex>
 #include <stefmap_ros/stefmap.hpp>
 #include <whytemap_ros/whytemap.hpp>
 
 #include "ompl/mod/objectives/DTCOptimizationObjective.h"
 #include "ompl/mod/objectives/DTWOptimizationObjective.h"
+#include "ompl/mod/objectives/IntensityMapOptimizationObjective.h"
 #include "ompl/mod/objectives/MoDOptimizationObjective.h"
 #include "ompl/mod/objectives/UpstreamCriterionOptimizationObjective.h"
-
-#include <ompl/base/samplers/InformedStateSampler.h>
+#include "ompl_planners_ros/visualization.hpp"
 
 std::queue<mod_path_planning::MoDPlanningGoalConstPtr> goal_queue_;
 std::mutex resource_mutex_;
 
 class MoDReedsSheppRRTStarPlanner {
-protected:
+ protected:
   // ros::NodeHandles
   ros::NodeHandle nh;
   ros::NodeHandle private_nh;
@@ -95,8 +92,9 @@ protected:
   ob::OptimizationObjectivePtr STeFUpstreamCostObjective;
   ob::OptimizationObjectivePtr GMMTUpstreamCostObjective;
   ob::OptimizationObjectivePtr WHyTeUpstreamCostObjective;
+  ob::OptimizationObjectivePtr IntensityCostObjective;
 
-public:
+ public:
   boost::shared_ptr<std::vector<geometry_msgs::Pose2D>> getSolutionPosesPtr() {
     return solution_poses_ptr;
   }
@@ -207,6 +205,12 @@ public:
             planner->ss->getSpaceInformation(), cliffmap_client->get(),
             pp.weight_d, pp.weight_q, 0.0));
 
+    IntensityCostObjective = ob::OptimizationObjectivePtr(
+        new ompl::mod::IntensityMapOptimizationObjective(
+            planner->ss->getSpaceInformation(),
+            "/home/ksatyaki/intensity_map_1m.xml", pp.weight_d, pp.weight_q,
+            pp.weight_c));
+
     if (mod_type_ == ompl::mod::MapType::WHyTeMap && not upstream) {
       ROS_INFO_STREAM("\x1b[34mWHyTe-map planning is activated with DTW cost.");
       planner->ss->setOptimizationObjective(DTWCostObjective);
@@ -227,6 +231,9 @@ public:
       ROS_INFO_STREAM(
           "\x1b[34mWHyTe-map planning is activated with upstream cost.");
       planner->ss->setOptimizationObjective(WHyTeUpstreamCostObjective);
+    } else if (mod_type_ == ompl::mod::MapType::IntensityMap) {
+      ROS_INFO_STREAM("\x1b[34mIntensity-map planning is activated.");
+      planner->ss->setOptimizationObjective(IntensityCostObjective);
     } else {
       ROS_INFO_STREAM("\x1b[34m MoD-unaware planning is activated.");
       planner->ss->setOptimizationObjective(MoDUnawareCostObjective);
@@ -257,6 +264,14 @@ public:
     auto opt_obj =
         std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
             DTCCostObjective);
+    auto costs = getSolutionCostComponents(opt_obj);
+    return costs.cost_c_;
+  }
+
+  double getIntensityCost() {
+    auto opt_obj =
+        std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
+            IntensityCostObjective);
     auto costs = getSolutionCostComponents(opt_obj);
     return costs.cost_c_;
   }
@@ -316,8 +331,8 @@ public:
     return total_cost;
   }
 
-  ompl::mod::Cost
-  getSolutionCostComponents(ompl::mod::MoDOptimizationObjectivePtr opt_obj) {
+  ompl::mod::Cost getSolutionCostComponents(
+      ompl::mod::MoDOptimizationObjectivePtr opt_obj) {
     auto space_info = this->planner->ss->getSpaceInformation();
 
     std::vector<ompl::base::State *> states =
@@ -367,7 +382,6 @@ public:
       const std::vector<const ompl::base::State *> &solution_states,
       const ompl::base::Cost cost, const geometry_msgs::Pose2D &start,
       const geometry_msgs::Pose2D &goal) {
-
     ROS_INFO_STREAM("New solution found with cost: \x1b[34m"
                     << std::fixed << std::setprecision(2) << cost.value());
 
@@ -453,7 +467,6 @@ int main(int argn, char *args[]) {
 
   while (ros::ok()) {
     if (not goal_queue_.empty()) {
-
       resource_mutex_.lock();
       const mod_path_planning::MoDPlanningGoalConstPtr goal =
           goal_queue_.front();
@@ -462,21 +475,21 @@ int main(int argn, char *args[]) {
 
       ompl::mod::MapType planningGoalMapType;
       switch (goal->mod_type) {
-      case mod_path_planning::MoDPlanningGoal::CLIFF:
-        planningGoalMapType = ompl::mod::MapType::CLiFFMap;
-        break;
-      case mod_path_planning::MoDPlanningGoal::STEF:
-        planningGoalMapType = ompl::mod::MapType::STeFMap;
-        break;
-      case mod_path_planning::MoDPlanningGoal::WHYTE:
-        planningGoalMapType = ompl::mod::MapType::WHyTeMap;
-        break;
-      case mod_path_planning::MoDPlanningGoal::GMMT:
-        planningGoalMapType = ompl::mod::MapType::GMMTMap;
-        break;
-      default:
-        planningGoalMapType = ompl::mod::MapType::NOTSET;
-        break;
+        case mod_path_planning::MoDPlanningGoal::CLIFF:
+          planningGoalMapType = ompl::mod::MapType::CLiFFMap;
+          break;
+        case mod_path_planning::MoDPlanningGoal::STEF:
+          planningGoalMapType = ompl::mod::MapType::STeFMap;
+          break;
+        case mod_path_planning::MoDPlanningGoal::WHYTE:
+          planningGoalMapType = ompl::mod::MapType::WHyTeMap;
+          break;
+        case mod_path_planning::MoDPlanningGoal::GMMT:
+          planningGoalMapType = ompl::mod::MapType::GMMTMap;
+          break;
+        default:
+          planningGoalMapType = ompl::mod::MapType::NOTSET;
+          break;
       }
 
       // Instantiate planner
@@ -504,7 +517,6 @@ int main(int argn, char *args[]) {
       auto all_costs = mod_rs_rrtstar_planner.getSolutionCostComponentsAll();
       std::ofstream pathStatsFile(pathStatsFileName, std::ios::out);
       ROS_INFO("Path stats are saved to: %s", pathStatsFileName.c_str());
-
 
       char costLine[300];
       sprintf(costLine, "%s_%s, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %ld",
