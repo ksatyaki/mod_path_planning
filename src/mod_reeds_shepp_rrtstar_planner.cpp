@@ -1,3 +1,5 @@
+#include <ompl_planners_ros/mc_reeds_shepp_car_planner.hpp>
+
 /*
  *   Copyright (c) Chittaranjan Srinivas Swaminathan
  *   This file is part of mod_path_planning.
@@ -16,7 +18,7 @@
  *   along with ompl_planners_ros.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <ompl_planners_ros/mc_reeds_shepp_car_planner.hpp>
+#include <fstream>
 
 #include <costmap_2d/footprint.h>
 #include <geometry_msgs/PoseArray.h>
@@ -235,7 +237,7 @@ class MoDReedsSheppRRTStarPlanner {
       ROS_INFO_STREAM("\x1b[34mIntensity-map planning is activated.");
       planner->ss->setOptimizationObjective(IntensityCostObjective);
     } else {
-      ROS_INFO_STREAM("\x1b[34m MoD-unaware planning is activated.");
+      ROS_INFO_STREAM("\x1b[34mMoD-unaware planning is activated: ");
       planner->ss->setOptimizationObjective(MoDUnawareCostObjective);
     }
   }
@@ -486,6 +488,9 @@ int main(int argn, char *args[]) {
           break;
         case mod_path_planning::MoDPlanningGoal::GMMT:
           planningGoalMapType = ompl::mod::MapType::GMMTMap;
+          break;
+        case mod_path_planning::MoDPlanningGoal::INTENSITY:
+          planningGoalMapType = ompl::mod::MapType::IntensityMap;
           break;
         default:
           planningGoalMapType = ompl::mod::MapType::NOTSET;

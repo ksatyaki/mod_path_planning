@@ -21,7 +21,7 @@ if(OMPL_FOUND)
 endif(OMPL_FOUND)
 
 # 2) MRPT
-find_package(MRPT REQUIRED)
+find_package(MRPT REQUIRED COMPONENTS maps math)
 
 # 3) ROS
 find_package(catkin REQUIRED COMPONENTS
