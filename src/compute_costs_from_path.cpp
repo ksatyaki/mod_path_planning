@@ -57,5 +57,10 @@ int main(int argn, char* args[]) {
 
   std::vector<std::string> all_path_files;
 
+  for (const std::string& scenario : scenarios) {
+    for (const std::string& time : times) {
+    }
+  }
+
   return 0;
 }
