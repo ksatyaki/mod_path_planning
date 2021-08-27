@@ -41,7 +41,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 # 4) Boost
-find_package(Boost REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem program_options)
 
 add_message_files(
   FILES
@@ -70,3 +70,7 @@ include_directories(
 add_executable(mod_reeds_shepp_rrtstar_planner src/mod_reeds_shepp_rrtstar_planner.cpp)
 add_dependencies(mod_reeds_shepp_rrtstar_planner ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(mod_reeds_shepp_rrtstar_planner ${catkin_LIBRARIES} ${OMPL_LIBRARIES} ${MRPT_LIBRARIES} ${Boost_LIBRARIES})
+
+add_executable(paths_to_costs src/compute_costs_from_path.cpp)
+add_dependencies(paths_to_costs ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(paths_to_costs ${catkin_LIBRARIES} ${OMPL_LIBRARIES} ${MRPT_LIBRARIES} ${Boost_LIBRARIES})
