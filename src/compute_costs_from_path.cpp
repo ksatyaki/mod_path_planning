@@ -97,7 +97,7 @@ int main(int argn, char *args[]) {
   }
 
   std::string folder_path = vm["folder"].as<std::string>();
-  const std::string scenar
+  const std::string scenarios[4] = {"corridor1", "corridor2", "corridor3",
                                     "corridor4"};
   const std::string times[3] = {"t1", "t2", "t3"};
   constexpr double time_point1 = 1352866100;
@@ -121,10 +121,6 @@ int main(int argn, char *args[]) {
   auto cliffmap_client = std::make_shared<cliffmap_ros::CLiFFMapClient>();
   auto stefmap_client = std::make_shared<stefmap_ros::STeFMapClient>();
   auto gmmtmap_client = std::make_shared<gmmtmap_ros::GMMTMapClient>();
-
-  double planning_time = 0.0;
-
-  constexpr double weight_d = 1.0, weight_q = 1.0, weight_c = 0.1;
 
   constexpr double weight_d = 1.0, weight_q = 1.0, weight_c = 0.1;
 
@@ -165,7 +161,6 @@ int main(int argn, char *args[]) {
       computeCostsFromCSV(fileName, DTCCostObjective);
     } else if (fileName.find("Intensity") != std::string::npos) {
       computeCostsFromCSV(fileName, IntensityCostObjective);
-
     } else {
       ROS_INFO_STREAM("Not a path file: " << fileName);
     }
