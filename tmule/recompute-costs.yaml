@@ -1,0 +1,18 @@
+session: chitt-testing
+init_cmd: |
+  cd @TMULE_CONFIG_DIR@ || true
+  source ./setup.sh
+
+windows:
+  - name: roscore
+    panes:
+      - roscore
+    check: "rostopic list"
+
+  - name: stef-map
+    panes:
+      - sleep 3; roslaunch mod_path_planning stef_atc.launch --screen
+
+  - name: planner
+    panes:
+      - sleep 60; rosrun mod_path_planning paths_to_costs --folder "/home/ksatyaki/workspace/DATA/savedPathsOLDnNew/phase1/15mins/"
