@@ -176,6 +176,8 @@ int main(int argn, char *args[]) {
           fileName,
           std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
               IntensityCostObjective));
+    } else {
+      ROS_INFO_STREAM("Not a path file: " << fileName);
     }
   }
   return 0;
