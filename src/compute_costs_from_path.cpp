@@ -35,9 +35,16 @@ std::vector<std::string> getFilesMatchingPattern(
   return all_matching_files;
 }
 
+std::array<double, 3> poseFromStr(std::vector<std::string> str) {
+  std::array<double, 3> pose;
+  pose[0] = std::stod(str[0]);
+  pose[1] = std::stod(str[1]);
+  pose[2] = std::stod(str[2]);
+  return pose;
+}
+
 void computeCostsFromCSV(const std::string &csv_file_name,
-                         const ompl::mod::MoDOptimizationObjectivePtr &ptr,
-                         const std::string &type) {
+                         const ob::OptimizationObjectivePtr &ptr) {
   std::string costs_file_name = csv_file_name;
   boost::regex_replace(costs_file_name, boost::regex(".path"), ".costs_file");
 
@@ -53,9 +60,15 @@ void computeCostsFromCSV(const std::string &csv_file_name,
                     << costs_file_name);
   }
 
-  ompl::mod::MoDOptimizationObjectivePtr concOptObj;
-
   std::vector<std::array<double, 3>> poses;
+  std::string single_line;
+  while (std::getline(path_file, single_line)) {
+    std::vector<std::string> pose_str;
+    boost::split(pose_str, single_line, boost::is_any_of(", "));
+    poses.push_back(poseFromStr(pose_str));
+  }
+
+  ROS_INFO("Read poses.");
 }
 
 int main(int argn, char *args[]) {
@@ -84,9 +97,10 @@ int main(int argn, char *args[]) {
   }
 
   std::string folder_path = vm["folder"].as<std::string>();
-  const std::string scenarios[4] = {"corridor1", "corridor2", "corridor3",
+  const std::string scenar
                                     "corridor4"};
   const std::string times[3] = {"t1", "t2", "t3"};
+  constexpr double time_point1 = 1352866100;
 
   std::vector<std::string> all_path_files;
 
@@ -112,53 +126,46 @@ int main(int argn, char *args[]) {
 
   constexpr double weight_d = 1.0, weight_q = 1.0, weight_c = 0.1;
 
-  ompl::mod::DTCOptimizationObjective DTCCostObjective(
-      spaceInfo, cliffmap_client->get(), weight_d, weight_q, 0.02, 1.0);
+  constexpr double weight_d = 1.0, weight_q = 1.0, weight_c = 0.1;
 
-  ompl::mod::UpstreamCriterionOptimizationObjective STeFUpstreamCostObjective(
-      spaceInfo, stefmap_client->get(planning_time, 2), weight_c, weight_q,
-      weight_c);
+  ob::OptimizationObjectivePtr DTCCostObjective(
+      new ompl::mod::DTCOptimizationObjective(spaceInfo, cliffmap_client->get(),
+                                              weight_d, weight_q, 0.02, 1.0));
 
-  ompl::mod::UpstreamCriterionOptimizationObjective GMMTUpstreamCostObjective(
-      spaceInfo, gmmtmap_client->get(), weight_d, weight_q, weight_c);
+  ob::OptimizationObjectivePtr STeFUpstreamCostObjective(
+      new ompl::mod::UpstreamCriterionOptimizationObjective(
+          spaceInfo, stefmap_client->get(time_point1, 2), weight_c, weight_q,
+          weight_c));
 
-  ompl::mod::UpstreamCriterionOptimizationObjective CLiFFUpstreamCostObjective(
-      spaceInfo, cliffmap_client->get(), weight_d, weight_q, weight_c);
+  ob::OptimizationObjectivePtr GMMTUpstreamCostObjective(
+      new ompl::mod::UpstreamCriterionOptimizationObjective(
+          spaceInfo, gmmtmap_client->get(), weight_d, weight_q, weight_c));
 
-  ompl::mod::IntensityMapOptimizationObjective IntensityCostObjective(
-      spaceInfo, "/home/ksatyaki/intensity_map_1m.xml", weight_d, weight_q,
-      weight_c * 2);
+  ob::OptimizationObjectivePtr CLiFFUpstreamCostObjective(
+      new ompl::mod::UpstreamCriterionOptimizationObjective(
+          spaceInfo, cliffmap_client->get(), weight_d, weight_q, weight_c));
+
+  ob::OptimizationObjectivePtr IntensityCostObjective(
+      new ompl::mod::IntensityMapOptimizationObjective(
+          spaceInfo, "/home/ksatyaki/intensity_map_1m.xml", weight_d, weight_q,
+          weight_c * 2));
 
   ROS_INFO_STREAM("All MoD Optimization Objectives initialized.");
 
   for (const auto &fileName : all_path_files) {
     if (fileName.find("STeF") != std::string::npos) {
-      computeCostsFromCSV(
-          fileName,
-          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-              STeFUpstreamCostObjective));
+      computeCostsFromCSV(fileName, STeFUpstreamCostObjective);
     } else if (fileName.find("CLiFF") != std::string::npos &&
                fileName.find("upstream") != std::string::npos) {
-      computeCostsFromCSV(
-          fileName,
-          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-              CLiFFUpstreamCostObjective));
+      computeCostsFromCSV(fileName, CLiFFUpstreamCostObjective);
     } else if (fileName.find("GMM") != std::string::npos) {
-      computeCostsFromCSV(
-          fileName,
-          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-              GMMTUpstreamCostObjective));
+      computeCostsFromCSV(fileName, GMMTUpstreamCostObjective);
     } else if (fileName.find("CLiFF") != std::string::npos &&
                fileName.find("noup") != std::string::npos) {
-      computeCostsFromCSV(
-          fileName,
-          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-              DTCCostObjective));
+      computeCostsFromCSV(fileName, DTCCostObjective);
     } else if (fileName.find("Intensity") != std::string::npos) {
-      computeCostsFromCSV(
-          fileName,
-          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-              IntensityCostObjective));
+      computeCostsFromCSV(fileName, IntensityCostObjective);
+
     } else {
       ROS_INFO_STREAM("Not a path file: " << fileName);
     }
