@@ -17,7 +17,7 @@ namespace po = boost::program_options;
 namespace ob = ompl::base;
 
 std::vector<std::string> getFilesMatchingPattern(
-    const std::string &target_path, const std::string &pattern = "*.path") {
+    const std::string &target_path, const std::string &extension = ".path") {
   // const boost::regex my_filter(pattern);
 
   std::vector<std::string> all_matching_files;
@@ -28,7 +28,7 @@ std::vector<std::string> getFilesMatchingPattern(
     if (!boost::filesystem::is_regular_file(i->status())) continue;
 
     boost::smatch what;
-    if (i->path().filename().extension() != pattern) continue;
+    if (i->path().filename().extension() != extension) continue;
 
     all_matching_files.push_back(i->path().string());
   }
@@ -43,8 +43,9 @@ std::array<double, 3> poseFromStr(std::vector<std::string> str) {
   return pose;
 }
 
-void computeCostsFromCSV(const std::string &csv_file_name,
-                         const ob::OptimizationObjectivePtr &ptr) {
+void computeCostsFromCSV(
+    const std::string &csv_file_name,
+    const std::array<ob::OptimizationObjectivePtr, 5> &ptrs) {
   std::string costs_file_name = csv_file_name;
   boost::regex_replace(costs_file_name, boost::regex(".path"), ".costs_file");
 
@@ -146,24 +147,14 @@ int main(int argn, char *args[]) {
           spaceInfo, "/home/ksatyaki/intensity_map_1m.xml", weight_d, weight_q,
           weight_c * 2));
 
+  std::array<ob::OptimizationObjectivePtr, 5> ptrs = {
+      DTCCostObjective, CLiFFUpstreamCostObjective, STeFUpstreamCostObjective,
+      GMMTUpstreamCostObjective, IntensityCostObjective};
+
   ROS_INFO_STREAM("All MoD Optimization Objectives initialized.");
 
   for (const auto &fileName : all_path_files) {
-    if (fileName.find("STeF") != std::string::npos) {
-      computeCostsFromCSV(fileName, STeFUpstreamCostObjective);
-    } else if (fileName.find("CLiFF") != std::string::npos &&
-               fileName.find("upstream") != std::string::npos) {
-      computeCostsFromCSV(fileName, CLiFFUpstreamCostObjective);
-    } else if (fileName.find("GMM") != std::string::npos) {
-      computeCostsFromCSV(fileName, GMMTUpstreamCostObjective);
-    } else if (fileName.find("CLiFF") != std::string::npos &&
-               fileName.find("noup") != std::string::npos) {
-      computeCostsFromCSV(fileName, DTCCostObjective);
-    } else if (fileName.find("Intensity") != std::string::npos) {
-      computeCostsFromCSV(fileName, IntensityCostObjective);
-    } else {
-      ROS_INFO_STREAM("Not a path file: " << fileName);
-    }
+    computeCostsFromCSV(fileName, ptrs);
   }
   return 0;
 }
