@@ -44,7 +44,7 @@ std::array<double, 3> poseFromStr(std::vector<std::string> str) {
 }
 
 void computeCostsFromCSV(const std::string &csv_file_name,
-                         const ompl::mod::MoDOptimizationObjectivePtr &ptr) {
+                         const ob::OptimizationObjectivePtr &ptr) {
   std::string costs_file_name = csv_file_name;
   boost::regex_replace(costs_file_name, boost::regex(".path"), ".costs_file");
 
@@ -150,32 +150,17 @@ int main(int argn, char *args[]) {
 
   for (const auto &fileName : all_path_files) {
     if (fileName.find("STeF") != std::string::npos) {
-      computeCostsFromCSV(
-          fileName,
-          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-              STeFUpstreamCostObjective));
+      computeCostsFromCSV(fileName, STeFUpstreamCostObjective);
     } else if (fileName.find("CLiFF") != std::string::npos &&
                fileName.find("upstream") != std::string::npos) {
-      computeCostsFromCSV(
-          fileName,
-          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-              CLiFFUpstreamCostObjective));
+      computeCostsFromCSV(fileName, CLiFFUpstreamCostObjective);
     } else if (fileName.find("GMM") != std::string::npos) {
-      computeCostsFromCSV(
-          fileName,
-          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-              GMMTUpstreamCostObjective));
+      computeCostsFromCSV(fileName, GMMTUpstreamCostObjective);
     } else if (fileName.find("CLiFF") != std::string::npos &&
                fileName.find("noup") != std::string::npos) {
-      computeCostsFromCSV(
-          fileName,
-          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-              DTCCostObjective));
+      computeCostsFromCSV(fileName, DTCCostObjective);
     } else if (fileName.find("Intensity") != std::string::npos) {
-      computeCostsFromCSV(
-          fileName,
-          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-              IntensityCostObjective));
+      computeCostsFromCSV(fileName, IntensityCostObjective);
     } else {
       ROS_INFO_STREAM("Not a path file: " << fileName);
     }
