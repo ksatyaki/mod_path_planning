@@ -131,5 +131,37 @@ int main(int argn, char *args[]) {
 
   ROS_INFO_STREAM("All MoD Optimization Objectives initialized.");
 
+  for (const auto &fileName : all_path_files) {
+    if (fileName.find("STeF") != std::string::npos) {
+      computeCostsFromCSV(
+          fileName,
+          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
+              STeFUpstreamCostObjective));
+    } else if (fileName.find("CLiFF") != std::string::npos &&
+               fileName.find("upstream") != std::string::npos) {
+      computeCostsFromCSV(
+          fileName,
+          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
+              CLiFFUpstreamCostObjective));
+    } else if (fileName.find("GMM") != std::string::npos) {
+      computeCostsFromCSV(
+          fileName,
+          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
+              GMMTUpstreamCostObjective));
+    } else if (fileName.find("CLiFF") != std::string::npos &&
+               fileName.find("noup") != std::string::npos) {
+      computeCostsFromCSV(
+          fileName,
+          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
+              DTCCostObjective));
+    } else if (fileName.find("Intensity") != std::string::npos) {
+      computeCostsFromCSV(
+          fileName,
+          std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
+              IntensityCostObjective));
+    } else {
+      ROS_INFO_STREAM("Not a path file: " << fileName);
+    }
+  }
   return 0;
 }
