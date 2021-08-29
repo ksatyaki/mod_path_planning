@@ -35,9 +35,10 @@ std::vector<std::string> getFilesMatchingPattern(
   return all_matching_files;
 }
 
-ob::ScopedState<> poseFromStr(const std::vector<std::string> &str,
-                              const ob::StateSpacePtr &cStateSpacePtr) {
-  ob::ScopedState<> scopedState(cStateSpacePtr);
+ob::ScopedState<ob::CarStateSpace> poseFromStr(
+    const std::vector<std::string> &str,
+    const std::shared_ptr<ob::CarStateSpace> &cStateSpacePtr) {
+  ob::ScopedState<ob::CarStateSpace> scopedState(cStateSpacePtr);
   scopedState[0] = std::stod(str[0]);
   scopedState[1] = std::stod(str[1]);
   scopedState[2] = std::stod(str[2]);
@@ -46,8 +47,8 @@ ob::ScopedState<> poseFromStr(const std::vector<std::string> &str,
 
 void computeCostsFromCSV(
     const std::string &csv_file_name,
-    const std::array<ob::OptimizationObjectivePtr, 7> &ptrs,
-    const ob::StateSpacePtr &cStateSpace) {
+    const std::array<ompl::mod::MoDOptimizationObjectivePtr, 7> &ptrs,
+    const std::shared_ptr<ob::CarStateSpace> &cStateSpace) {
   std::string costs_file_name = csv_file_name;
   boost::replace_all(costs_file_name, ".path", ".costs_file");
 
@@ -63,7 +64,7 @@ void computeCostsFromCSV(
                     << costs_file_name);
   }
 
-  std::vector<ob::ScopedState<>> poses;
+  std::vector<ob::ScopedState<ob::CarStateSpace>> poses;
   std::string single_line;
   while (std::getline(path_file, single_line)) {
     std::vector<std::string> pose_str;
@@ -79,7 +80,15 @@ void computeCostsFromCSV(
   }
 
   for (size_t i = 1; i < poses.size(); i++) {
+    auto distance = sqrt(((poses[i].reals()[0] - poses[i - 1].reals()[0]) *
+                          (poses[i].reals()[0] - poses[i - 1].reals()[0])) +
+                         ((poses[i].reals()[1] - poses[i - 1].reals()[1]) *
+                          (poses[i].reals()[1] - poses[i - 1].reals()[1])));
+    double dot = cos((poses[i].reals()[2] - poses[i - 1].reals()[2]) / 2.0);
+    double q_distance = (1.0 - dot * dot);
     costs_file
+        << cStateSpace->distance(poses[i - 1].get(), poses[i].get()) << ", "
+        << distance << ", " << q_distance << ", "
         << ptrs[0]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
         << ptrs[1]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
         << ptrs[2]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
@@ -137,7 +146,8 @@ int main(int argn, char *args[]) {
     }
   }
 
-  ob::StateSpacePtr cStateSpace = std::make_shared<ob::CarStateSpace>(0.5);
+  std::shared_ptr<ob::CarStateSpace> cStateSpace =
+      std::make_shared<ob::CarStateSpace>(0.5, false);
   ob::SpaceInformationPtr spaceInfo =
       std::make_shared<ob::SpaceInformation>(cStateSpace);
 
@@ -147,39 +157,39 @@ int main(int argn, char *args[]) {
 
   constexpr double weight_d = 1.0, weight_q = 1.0, weight_c = 0.1;
 
-  ob::OptimizationObjectivePtr DTCCostObjective(
+  ompl::mod::MoDOptimizationObjectivePtr DTCCostObjective(
       new ompl::mod::DTCOptimizationObjective(spaceInfo, cliffmap_client->get(),
                                               weight_d, weight_q, 0.02, 1.0));
 
-  ob::OptimizationObjectivePtr STeFUpstreamCostObjective1(
+  ompl::mod::MoDOptimizationObjectivePtr STeFUpstreamCostObjective1(
       new ompl::mod::UpstreamCriterionOptimizationObjective(
           spaceInfo, stefmap_client->get(time_point1, 2), weight_c, weight_q,
           weight_c));
 
-  ob::OptimizationObjectivePtr STeFUpstreamCostObjective2(
+  ompl::mod::MoDOptimizationObjectivePtr STeFUpstreamCostObjective2(
       new ompl::mod::UpstreamCriterionOptimizationObjective(
           spaceInfo, stefmap_client->get(time_point2, 2), weight_c, weight_q,
           weight_c));
 
-  ob::OptimizationObjectivePtr STeFUpstreamCostObjective3(
+  ompl::mod::MoDOptimizationObjectivePtr STeFUpstreamCostObjective3(
       new ompl::mod::UpstreamCriterionOptimizationObjective(
           spaceInfo, stefmap_client->get(time_point3, 2), weight_c, weight_q,
           weight_c));
 
-  ob::OptimizationObjectivePtr GMMTUpstreamCostObjective(
+  ompl::mod::MoDOptimizationObjectivePtr GMMTUpstreamCostObjective(
       new ompl::mod::UpstreamCriterionOptimizationObjective(
           spaceInfo, gmmtmap_client->get(), weight_d, weight_q, weight_c));
 
-  ob::OptimizationObjectivePtr CLiFFUpstreamCostObjective(
+  ompl::mod::MoDOptimizationObjectivePtr CLiFFUpstreamCostObjective(
       new ompl::mod::UpstreamCriterionOptimizationObjective(
           spaceInfo, cliffmap_client->get(), weight_d, weight_q, weight_c));
 
-  ob::OptimizationObjectivePtr IntensityCostObjective(
+  ompl::mod::MoDOptimizationObjectivePtr IntensityCostObjective(
       new ompl::mod::IntensityMapOptimizationObjective(
           spaceInfo, "/home/ksatyaki/intensity_map_1m.xml", weight_d, weight_q,
           weight_c * 2));
 
-  std::array<ob::OptimizationObjectivePtr, 7> ptrs = {
+  std::array<ompl::mod::MoDOptimizationObjectivePtr, 7> ptrs = {
       DTCCostObjective,           CLiFFUpstreamCostObjective,
       STeFUpstreamCostObjective1, STeFUpstreamCostObjective2,
       STeFUpstreamCostObjective3, GMMTUpstreamCostObjective,
@@ -190,7 +200,7 @@ int main(int argn, char *args[]) {
   size_t files_completed = 0;
   for (const auto &fileName : all_path_files) {
     computeCostsFromCSV(fileName, ptrs, cStateSpace);
-    std::printf("%ld cost files computed out of %ld...", ++files_completed,
+    std::printf("%ld cost files computed out of %ld...\r", ++files_completed,
                 all_path_files.size());
   }
   return 0;
