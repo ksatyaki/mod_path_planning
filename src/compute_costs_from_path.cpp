@@ -190,7 +190,7 @@ int main(int argn, char *args[]) {
   size_t files_completed = 0;
   for (const auto &fileName : all_path_files) {
     computeCostsFromCSV(fileName, ptrs, cStateSpace);
-    std::printf("%ld cost files computed out of %ld...", ++files_completed,
+    std::printf("%ld cost files computed out of %ld...\r", ++files_completed,
                 all_path_files.size());
   }
   return 0;
