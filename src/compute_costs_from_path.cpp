@@ -79,6 +79,7 @@ void computeCostsFromCSV(
     poses.push_back(poseFromStr(pose_str, cStateSpace));
   }
 
+  costs_file << std::fixed << std::setprecision(4);
   for (size_t i = 1; i < poses.size(); i++) {
     auto cost0 = ptrs[0]->motionCost(poses[i - 1].get(), poses[i].get());
     auto cost1 = ptrs[1]->motionCost(poses[i - 1].get(), poses[i].get());
@@ -93,7 +94,7 @@ void computeCostsFromCSV(
                << ptrs[1]->getLastCostC() << ", " << ptrs[2]->getLastCostC()
                << ", " << ptrs[3]->getLastCostC() << ", "
                << ptrs[4]->getLastCostC() << ", " << ptrs[5]->getLastCostC()
-               << ", " << ptrs[6]->getLastCostC() << "," << cost0 << ", "
+               << ", " << ptrs[6]->getLastCostC() << ", " << cost0 << ", "
                << cost1 << ", " << cost2 << ", " << cost3 << ", " << cost4
                << ", " << cost5 << ", " << cost6 << "\n";
   }
@@ -151,6 +152,9 @@ int main(int argn, char *args[]) {
   ob::SpaceInformationPtr spaceInfo =
       std::make_shared<ob::SpaceInformation>(cStateSpace);
 
+  spaceInfo->setStateValidityCheckingResolution(
+      0.01 / cStateSpace->getMaximumExtent());
+
   auto cliffmap_client = std::make_shared<cliffmap_ros::CLiFFMapClient>();
   auto stefmap_client = std::make_shared<stefmap_ros::STeFMapClient>();
   auto gmmtmap_client = std::make_shared<gmmtmap_ros::GMMTMapClient>();
@@ -163,17 +167,17 @@ int main(int argn, char *args[]) {
 
   ompl::mod::MoDOptimizationObjectivePtr STeFUpstreamCostObjective1(
       new ompl::mod::UpstreamCriterionOptimizationObjective(
-          spaceInfo, stefmap_client->get(time_point1, 2), weight_c, weight_q,
+          spaceInfo, stefmap_client->get(time_point1, 2), weight_d, weight_q,
           weight_c));
 
   ompl::mod::MoDOptimizationObjectivePtr STeFUpstreamCostObjective2(
       new ompl::mod::UpstreamCriterionOptimizationObjective(
-          spaceInfo, stefmap_client->get(time_point2, 2), weight_c, weight_q,
+          spaceInfo, stefmap_client->get(time_point2, 2), weight_d, weight_q,
           weight_c));
 
   ompl::mod::MoDOptimizationObjectivePtr STeFUpstreamCostObjective3(
       new ompl::mod::UpstreamCriterionOptimizationObjective(
-          spaceInfo, stefmap_client->get(time_point3, 2), weight_c, weight_q,
+          spaceInfo, stefmap_client->get(time_point3, 2), weight_d, weight_q,
           weight_c));
 
   ompl::mod::MoDOptimizationObjectivePtr GMMTUpstreamCostObjective(
@@ -200,8 +204,10 @@ int main(int argn, char *args[]) {
   size_t files_completed = 0;
   for (const auto &fileName : all_path_files) {
     computeCostsFromCSV(fileName, ptrs, cStateSpace);
-    std::printf("%ld cost files computed out of %ld...\r", ++files_completed,
-                all_path_files.size());
+    if (files_completed % 20 == 0)
+      std::printf("%ld cost files computed out of %ld...\r", files_completed,
+                  all_path_files.size());
+    files_completed++;
   }
   return 0;
 }
