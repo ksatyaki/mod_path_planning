@@ -35,19 +35,21 @@ std::vector<std::string> getFilesMatchingPattern(
   return all_matching_files;
 }
 
-std::array<double, 3> poseFromStr(std::vector<std::string> str) {
-  std::array<double, 3> pose;
-  pose[0] = std::stod(str[0]);
-  pose[1] = std::stod(str[1]);
-  pose[2] = std::stod(str[2]);
-  return pose;
+ob::ScopedState<> poseFromStr(const std::vector<std::string> &str,
+                              const ob::StateSpacePtr &cStateSpacePtr) {
+  ob::ScopedState<> scopedState(cStateSpacePtr);
+  scopedState[0] = std::stod(str[0]);
+  scopedState[1] = std::stod(str[1]);
+  scopedState[2] = std::stod(str[2]);
+  return scopedState;
 }
 
 void computeCostsFromCSV(
     const std::string &csv_file_name,
-    const std::array<ob::OptimizationObjectivePtr, 5> &ptrs) {
+    const std::array<ob::OptimizationObjectivePtr, 7> &ptrs,
+    const ob::StateSpacePtr &cStateSpace) {
   std::string costs_file_name = csv_file_name;
-  boost::regex_replace(costs_file_name, boost::regex(".path"), ".costs_file");
+  boost::replace_all(costs_file_name, ".path", ".costs_file");
 
   std::fstream path_file(csv_file_name, std::ios::in);
   std::fstream costs_file(costs_file_name, std::ios::out);
@@ -61,15 +63,34 @@ void computeCostsFromCSV(
                     << costs_file_name);
   }
 
-  std::vector<std::array<double, 3>> poses;
+  std::vector<ob::ScopedState<>> poses;
   std::string single_line;
   while (std::getline(path_file, single_line)) {
     std::vector<std::string> pose_str;
-    boost::split(pose_str, single_line, boost::is_any_of(", "));
-    poses.push_back(poseFromStr(pose_str));
+    single_line.erase(
+        std::remove_if(single_line.begin(), single_line.end(),
+                       [](unsigned char x) { return std::isspace(x); }));
+    boost::split(pose_str, single_line, boost::is_any_of(","));
+    if (pose_str.size() != 3) {
+      ROS_ERROR_STREAM(
+          "Pose size isn't 3 somehow! It is instead: " << pose_str.size());
+    }
+    poses.push_back(poseFromStr(pose_str, cStateSpace));
   }
 
-  ROS_INFO("Read poses.");
+  for (size_t i = 1; i < poses.size(); i++) {
+    costs_file
+        << ptrs[0]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
+        << ptrs[1]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
+        << ptrs[2]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
+        << ptrs[3]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
+        << ptrs[4]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
+        << ptrs[5]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
+        << ptrs[6]->motionCost(poses[i - 1].get(), poses[i].get()) << "\n";
+  }
+  costs_file.close();
+  path_file.close();
+  poses.clear();
 }
 
 int main(int argn, char *args[]) {
@@ -102,6 +123,8 @@ int main(int argn, char *args[]) {
                                     "corridor4"};
   const std::string times[3] = {"t1", "t2", "t3"};
   constexpr double time_point1 = 1352866100;
+  constexpr double time_point2 = 1352883600;
+  constexpr double time_point3 = 1352890000;
 
   std::vector<std::string> all_path_files;
 
@@ -114,9 +137,8 @@ int main(int argn, char *args[]) {
     }
   }
 
-  std::shared_ptr<ob::CarStateSpace> cStateSpace =
-      std::make_shared<ob::CarStateSpace>(0.5);
-  std::shared_ptr<ob::SpaceInformation> spaceInfo =
+  ob::StateSpacePtr cStateSpace = std::make_shared<ob::CarStateSpace>(0.5);
+  ob::SpaceInformationPtr spaceInfo =
       std::make_shared<ob::SpaceInformation>(cStateSpace);
 
   auto cliffmap_client = std::make_shared<cliffmap_ros::CLiFFMapClient>();
@@ -129,9 +151,19 @@ int main(int argn, char *args[]) {
       new ompl::mod::DTCOptimizationObjective(spaceInfo, cliffmap_client->get(),
                                               weight_d, weight_q, 0.02, 1.0));
 
-  ob::OptimizationObjectivePtr STeFUpstreamCostObjective(
+  ob::OptimizationObjectivePtr STeFUpstreamCostObjective1(
       new ompl::mod::UpstreamCriterionOptimizationObjective(
           spaceInfo, stefmap_client->get(time_point1, 2), weight_c, weight_q,
+          weight_c));
+
+  ob::OptimizationObjectivePtr STeFUpstreamCostObjective2(
+      new ompl::mod::UpstreamCriterionOptimizationObjective(
+          spaceInfo, stefmap_client->get(time_point2, 2), weight_c, weight_q,
+          weight_c));
+
+  ob::OptimizationObjectivePtr STeFUpstreamCostObjective3(
+      new ompl::mod::UpstreamCriterionOptimizationObjective(
+          spaceInfo, stefmap_client->get(time_point3, 2), weight_c, weight_q,
           weight_c));
 
   ob::OptimizationObjectivePtr GMMTUpstreamCostObjective(
@@ -147,14 +179,19 @@ int main(int argn, char *args[]) {
           spaceInfo, "/home/ksatyaki/intensity_map_1m.xml", weight_d, weight_q,
           weight_c * 2));
 
-  std::array<ob::OptimizationObjectivePtr, 5> ptrs = {
-      DTCCostObjective, CLiFFUpstreamCostObjective, STeFUpstreamCostObjective,
-      GMMTUpstreamCostObjective, IntensityCostObjective};
+  std::array<ob::OptimizationObjectivePtr, 7> ptrs = {
+      DTCCostObjective,           CLiFFUpstreamCostObjective,
+      STeFUpstreamCostObjective1, STeFUpstreamCostObjective2,
+      STeFUpstreamCostObjective3, GMMTUpstreamCostObjective,
+      IntensityCostObjective};
 
   ROS_INFO_STREAM("All MoD Optimization Objectives initialized.");
 
+  size_t files_completed = 0;
   for (const auto &fileName : all_path_files) {
-    computeCostsFromCSV(fileName, ptrs);
+    computeCostsFromCSV(fileName, ptrs, cStateSpace);
+    std::printf("%ld cost files computed out of %ld...", ++files_completed,
+                all_path_files.size());
   }
   return 0;
 }
