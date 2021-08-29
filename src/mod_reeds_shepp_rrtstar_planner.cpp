@@ -18,8 +18,6 @@
  *   along with ompl_planners_ros.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <fstream>
-
 #include <costmap_2d/footprint.h>
 #include <geometry_msgs/PoseArray.h>
 #include <mod_path_planning/MoDPlanningGoal.h>
@@ -33,6 +31,7 @@
 #include <std_msgs/String.h>
 
 #include <cliffmap_ros/cliffmap.hpp>
+#include <fstream>
 #include <gmmtmap_ros/gmmtmap.hpp>
 #include <mutex>
 #include <stefmap_ros/stefmap.hpp>
