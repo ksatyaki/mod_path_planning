@@ -80,6 +80,7 @@ void computeCostsFromCSV(
 
   for (size_t i = 1; i < poses.size(); i++) {
     costs_file
+        << cStateSpace->distance(poses[i - 1].get(), poses[i].get()) << ", "
         << ptrs[0]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
         << ptrs[1]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
         << ptrs[2]->motionCost(poses[i - 1].get(), poses[i].get()) << ", "
