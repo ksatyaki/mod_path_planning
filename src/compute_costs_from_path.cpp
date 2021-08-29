@@ -93,9 +93,9 @@ void computeCostsFromCSV(
                << ptrs[1]->getLastCostC() << ", " << ptrs[2]->getLastCostC()
                << ", " << ptrs[3]->getLastCostC() << ", "
                << ptrs[4]->getLastCostC() << ", " << ptrs[5]->getLastCostC()
-               << ", " << ptrs[6]->getLastCostC() << cost0 << ", " << cost1
-               << ", " << cost2 << ", " << cost3 << ", " << cost4 << ", "
-               << cost5 << ", " << cost6 << "\n";
+               << ", " << ptrs[6]->getLastCostC() << "," << cost0 << ", "
+               << cost1 << ", " << cost2 << ", " << cost3 << ", " << cost4
+               << ", " << cost5 << ", " << cost6 << "\n";
   }
   costs_file.close();
   path_file.close();
