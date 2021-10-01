@@ -36,7 +36,6 @@
 #include <gmmtmap_ros/gmmtmap.hpp>
 #include <mutex>
 #include <stefmap_ros/stefmap.hpp>
-#include <whytemap_ros/whytemap.hpp>
 
 #include "ompl/mod/objectives/DTCOptimizationObjective.h"
 #include "ompl/mod/objectives/DTWOptimizationObjective.h"
@@ -65,7 +64,6 @@ class MoDReedsSheppRRTStarPlanner {
   std::shared_ptr<stefmap_ros::STeFMapClient> stefmap_client;
   std::shared_ptr<cliffmap_ros::CLiFFMapClient> cliffmap_client;
   std::shared_ptr<gmmtmap_ros::GMMTMapClient> gmmtmap_client;
-  std::shared_ptr<whytemap_ros::WHyTeMapClient> whytemap_client;
 
   // Occupancy map client
   ros::ServiceClient map_client;
@@ -93,7 +91,6 @@ class MoDReedsSheppRRTStarPlanner {
   ob::OptimizationObjectivePtr CLiFFUpstreamCostObjective;
   ob::OptimizationObjectivePtr STeFUpstreamCostObjective;
   ob::OptimizationObjectivePtr GMMTUpstreamCostObjective;
-  ob::OptimizationObjectivePtr WHyTeUpstreamCostObjective;
   ob::OptimizationObjectivePtr IntensityCostObjective;
 
  public:
@@ -123,6 +120,7 @@ class MoDReedsSheppRRTStarPlanner {
     nh.getParam("planner/publish_viz_markers", pp.publish_viz_markers);
     nh.getParam("vehile/inflation_radius", vp.inflation_radius);
     nh.getParam("vehicle/turning_radius", vp.turning_radius);
+    nh.getParam("stef_enabled", this->stef_enabled_);
 
     std::vector<geometry_msgs::Point> ftprnt =
         costmap_2d::makeFootprintFromParams(nh);
@@ -161,7 +159,6 @@ class MoDReedsSheppRRTStarPlanner {
     cliffmap_client = std::make_shared<cliffmap_ros::CLiFFMapClient>();
     stefmap_client = std::make_shared<stefmap_ros::STeFMapClient>();
     gmmtmap_client = std::make_shared<gmmtmap_ros::GMMTMapClient>();
-    whytemap_client = std::make_shared<whytemap_ros::WHyTeMapClient>();
 
     // Get the occupancy map
     nav_msgs::OccupancyGridPtr occ_map =
@@ -175,14 +172,6 @@ class MoDReedsSheppRRTStarPlanner {
         ob::OptimizationObjectivePtr(new ompl::mod::DTCOptimizationObjective(
             planner->ss->getSpaceInformation(), cliffmap_client->get(),
             pp.weight_d, pp.weight_q, pp.weight_c, vp.max_vehicle_speed));
-
-    DTWCostObjective =
-        ob::OptimizationObjectivePtr(new ompl::mod::DTWOptimizationObjective(
-            planner->ss->getSpaceInformation(), whytemap_client->get(),
-            pp.weight_d, pp.weight_q, pp.weight_c, vp.max_vehicle_speed));
-    std::dynamic_pointer_cast<ompl::mod::DTWOptimizationObjective>(
-        DTWCostObjective)
-        ->setTimeStamp(planning_time_);
 
     STeFUpstreamCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::UpstreamCriterionOptimizationObjective(
@@ -200,8 +189,6 @@ class MoDReedsSheppRRTStarPlanner {
             planner->ss->getSpaceInformation(), cliffmap_client->get(),
             pp.weight_d, pp.weight_q, pp.weight_c));
 
-    // Init WHyTeUpstreamCostObjective
-
     MoDUnawareCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::UpstreamCriterionOptimizationObjective(
             planner->ss->getSpaceInformation(), cliffmap_client->get(),
@@ -210,13 +197,10 @@ class MoDReedsSheppRRTStarPlanner {
     IntensityCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::IntensityMapOptimizationObjective(
             planner->ss->getSpaceInformation(),
-            "/home/ksatyaki/intensity_map_1m.xml", pp.weight_d, pp.weight_q,
-            pp.weight_c));
+            "/home/ksatyaki/intensity_map_1m_pedsim.xml", pp.weight_d,
+            pp.weight_q, pp.weight_c));
 
-    if (mod_type_ == ompl::mod::MapType::WHyTeMap && not upstream) {
-      ROS_INFO_STREAM("\x1b[34mWHyTe-map planning is activated with DTW cost.");
-      planner->ss->setOptimizationObjective(DTWCostObjective);
-    } else if (mod_type_ == ompl::mod::MapType::CLiFFMap && not upstream) {
+    if (mod_type_ == ompl::mod::MapType::CLiFFMap && not upstream) {
       ROS_INFO_STREAM("\x1b[34mCLiFF-map planning is activated with DTC cost.");
       planner->ss->setOptimizationObjective(DTCCostObjective);
     } else if (mod_type_ == ompl::mod::MapType::STeFMap) {
@@ -229,10 +213,6 @@ class MoDReedsSheppRRTStarPlanner {
       ROS_INFO_STREAM(
           "\x1b[34mCLiFF-map planning is activated with upstream cost.");
       planner->ss->setOptimizationObjective(CLiFFUpstreamCostObjective);
-    } else if (mod_type_ == ompl::mod::MapType::WHyTeMap && upstream) {
-      ROS_INFO_STREAM(
-          "\x1b[34mWHyTe-map planning is activated with upstream cost.");
-      planner->ss->setOptimizationObjective(WHyTeUpstreamCostObjective);
     } else if (mod_type_ == ompl::mod::MapType::IntensityMap) {
       ROS_INFO_STREAM("\x1b[34mIntensity-map planning is activated.");
       planner->ss->setOptimizationObjective(IntensityCostObjective);
@@ -286,7 +266,14 @@ class MoDReedsSheppRRTStarPlanner {
     return costs.cost_c_;
   }
 
+  bool stefEnabled() { return stef_enabled_; }
+
+  void disableSTeF() { stef_enabled_ = false; }
+
+  bool stef_enabled_{true};
+
   double getSTeFUpstreamCost() {
+    if (not this->stefEnabled()) return 0.0;
     auto opt_obj =
         std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
             STeFUpstreamCostObjective);
@@ -298,22 +285,6 @@ class MoDReedsSheppRRTStarPlanner {
     auto opt_obj =
         std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
             GMMTUpstreamCostObjective);
-    auto costs = getSolutionCostComponents(opt_obj);
-    return costs.cost_c_;
-  }
-
-  double getWHyTeUpstreamCost() {
-    auto opt_obj =
-        std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-            WHyTeUpstreamCostObjective);
-    auto costs = getSolutionCostComponents(opt_obj);
-    return costs.cost_c_;
-  }
-
-  double getDTWCost() {
-    auto opt_obj =
-        std::dynamic_pointer_cast<ompl::mod::MoDOptimizationObjective>(
-            DTWCostObjective);
     auto costs = getSolutionCostComponents(opt_obj);
     return costs.cost_c_;
   }
@@ -483,9 +454,6 @@ int main(int argn, char *args[]) {
         case mod_path_planning::MoDPlanningGoal::STEF:
           planningGoalMapType = ompl::mod::MapType::STeFMap;
           break;
-        case mod_path_planning::MoDPlanningGoal::WHYTE:
-          planningGoalMapType = ompl::mod::MapType::WHyTeMap;
-          break;
         case mod_path_planning::MoDPlanningGoal::GMMT:
           planningGoalMapType = ompl::mod::MapType::GMMTMap;
           break;
@@ -524,7 +492,7 @@ int main(int argn, char *args[]) {
       ROS_INFO("Path stats are saved to: %s", pathStatsFileName.c_str());
 
       char costLine[300];
-      sprintf(costLine, "%s_%s, %d, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %ld",
+      sprintf(costLine, "%s_%s, %d, %lf, %lf, %lf, %lf, %lf, %lf, %ld",
               mod_rs_rrtstar_planner.getMapTypeStr().c_str(),
               goal->upstream ? "_upstream" : "noup", seq,
               mod_rs_rrtstar_planner
@@ -536,7 +504,6 @@ int main(int argn, char *args[]) {
                       mod_rs_rrtstar_planner.getOptimizationObjective())
                   .cost_q_,
               mod_rs_rrtstar_planner.getDTCCost(),
-              mod_rs_rrtstar_planner.getDTWCost(),
               mod_rs_rrtstar_planner.getCLiFFUpstreamCost(),
               mod_rs_rrtstar_planner.getSTeFUpstreamCost(),
               mod_rs_rrtstar_planner.getGMMTUpstreamCost(),
