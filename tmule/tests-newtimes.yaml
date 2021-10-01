@@ -20,6 +20,5 @@ windows:
 
   - name: corridor-all
     panes:
-      - sleep 120; rosrun mod_path_planning test_case_generic.sh 900 10 1353224800;
-      - sleep 600; rosrun mod_path_planning test_case_generic.sh 900 10 1353232000;
-      - sleep 1200; rosrun mod_path_planning test_case_generic.sh 900 10 1353235600;
+      - sleep 120; rosrun mod_path_planning test_case_generic_stef.sh 900 10 1353232000;
+      - sleep 600; rosrun mod_path_planning test_case_generic_stef.sh 900 10 1353235600;

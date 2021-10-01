@@ -1,2 +1,2 @@
-source /opt/ros/kinetic/setup.sh
+source /opt/ros/melodic/setup.sh
 source ../../../devel/setup.sh
