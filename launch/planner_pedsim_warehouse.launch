@@ -17,7 +17,7 @@
   <arg name="cliff" default="true"/>
   <arg name="stef" default="true"/>
   <arg name="gmmt" default="true"/>
-  <arg name="whyte" default="false"/>
+  <arg name="whyte" default="true"/>
   
   <!-- Parameters -->
   <rosparam file="$(find mod_path_planning)/param/rrtstar_motion_planner_params.yaml" command="load"/>
