@@ -11,13 +11,14 @@ windows:
 
   - name: stef-map
     panes:
-      - sleep 3; roslaunch mod_path_planning stef_atc.launch --screen
+      - sleep 3; roslaunch mod_path_planning stef_empty.launch --screen
 
   - name: planner
     panes:
-      - mkdir -p /home/ksatyaki/experiments/savedPaths
-      - roslaunch mod_path_planning planner_pedsim_warehouse.launch folder:=/home/ksatyaki/experiments/ --screen
+      - mkdir -p /home/ksatyaki/experiments/pedsim_warehouse/savedPaths
+      - roslaunch mod_path_planning planner_pedsim_warehouse.launch folder:=/home/ksatyaki/experiments/pedsim_warehouse/ --screen
 
   - name: scripts
     panes:
+      - sleep 10; rosrun mod_path_planning toy_example_1.sh 300 20
       - sleep 60; rosrun mod_path_planning toy_example_2.sh 300 20
