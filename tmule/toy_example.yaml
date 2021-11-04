@@ -1,4 +1,3 @@
-session: chitt-testing
 init_cmd: |
   cd @TMULE_CONFIG_DIR@ || true
   source ./setup.sh

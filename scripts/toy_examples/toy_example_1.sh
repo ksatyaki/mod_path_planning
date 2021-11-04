@@ -16,8 +16,8 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
-start: {x: 0.0, y: 27.0, theta: 0.0}
-goal: {x: 30.0, y: 0.0, theta: -1.57079632679}
+start: {x: 2.0, y: 3.0, theta: 0.0}
+goal: {x: 33.0, y: 19.0, theta: 1.57079632679}
 mod_type: 0
 upstream: false
 weight_c: 0.00"
@@ -28,8 +28,8 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
-start: {x: 0.0, y: 27.0, theta: 0.0}
-goal: {x: 30.0, y: 0.0, theta: -1.57079632679}
+start: {x: 2.0, y: 3.0, theta: 0.0}
+goal: {x: 33.0, y: 19.0, theta: 1.57079632679}
 mod_type: 0
 upstream: false
 weight_c: 0.02"
@@ -40,8 +40,8 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
-start: {x: 0.0, y: 27.0, theta: 0.0}
-goal: {x: 30.0, y: 0.0, theta: -1.57079632679}
+start: {x: 2.0, y: 3.0, theta: 0.0}
+goal: {x: 33.0, y: 19.0, theta: 1.57079632679}
 mod_type: 0
 upstream: true
 weight_c: 0.1"
@@ -52,8 +52,8 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
-start: {x: 0.0, y: 27.0, theta: 0.0}
-goal: {x: 30.0, y: 0.0, theta: -1.57079632679}
+start: {x: 2.0, y: 3.0, theta: 0.0}
+goal: {x: 33.0, y: 19.0, theta: 1.57079632679}
 mod_type: 2
 upstream: true
 weight_c: 0.1"
@@ -64,8 +64,8 @@ rostopic pub -1 /mod_planning_goal mod_path_planning/MoDPlanningGoal "header:
   frame_id: 'map'
 times: $2
 planning_time_limit: $1
-start: {x: 0.0, y: 27.0, theta: 0.0}
-goal: {x: 30.0, y: 0.0, theta: -1.57079632679}
+start: {x: 2.0, y: 3.0, theta: 0.0}
+goal: {x: 33.0, y: 19.0, theta: 1.57079632679}
 mod_type: 4
 upstream: true
 weight_c: 0.2"
