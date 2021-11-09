@@ -207,7 +207,7 @@ class MoDReedsSheppRRTStarPlanner {
     IntensityCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::IntensityMapOptimizationObjective(
             planner->ss->getSpaceInformation(),
-            "/home/ksatyaki/intensity_map_1m.xml", pp.weight_d, pp.weight_q,
+            "/home/ksatyaki/intensity_map_1m_pedsim.xml", pp.weight_d, pp.weight_q,
             pp.weight_c));
 
     if (mod_type_ == ompl::mod::MapType::WHyTeMap && not upstream) {

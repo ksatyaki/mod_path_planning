@@ -2,6 +2,7 @@ session: toy-examples
 
 # init_cmd to run before launch in each window
 init_cmd: |
+  source ./setup.sh
   export TMULE=1
   date
   sleep 1
