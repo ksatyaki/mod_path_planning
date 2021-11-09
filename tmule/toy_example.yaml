@@ -1,4 +1,6 @@
+session: toy-examples
 init_cmd: |
+  export TMULE=1
   cd @TMULE_CONFIG_DIR@ || true
   source ./setup.sh
 
@@ -6,11 +8,13 @@ windows:
   - name: roscore
     panes:
       - roscore
+    wait: 0
     check: "rostopic list"
 
   - name: stef-map
+    wait: 3
     panes:
-      - sleep 3; roslaunch mod_path_planning stef_empty.launch --screen
+      - roslaunch mod_path_planning stef_empty.launch --screen
 
   - name: planner
     panes:

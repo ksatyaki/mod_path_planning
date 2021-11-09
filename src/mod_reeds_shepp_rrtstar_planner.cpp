@@ -26,7 +26,6 @@
 #include <mrpt/math/CPolygon.h>
 #include <nav_msgs/GetMap.h>
 #include <nav_msgs/OccupancyGrid.h>
-#include <ompl/base/samplers/InformedStateSampler.h>
 #include <ros/console.h>
 #include <ros/ros.h>
 #include <std_msgs/Empty.h>
@@ -84,8 +83,6 @@ class MoDReedsSheppRRTStarPlanner {
 
   // Updates
   long updates_{0};
-
-  std::shared_ptr<ompl::base::InformedStateSampler> infSamplerPtr;
 
   ob::OptimizationObjectivePtr MoDUnawareCostObjective;
   ob::OptimizationObjectivePtr DTCCostObjective;
