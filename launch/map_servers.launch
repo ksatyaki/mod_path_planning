@@ -18,6 +18,7 @@
   <node name="map_server" pkg="map_server" type="map_server" args="$(find mod_path_planning)/maps/$(arg occmap).yaml"/>
 
   <node if="$(arg cliff)" name="cliffmap_server" pkg="cliffmap_ros" type="cliffmap_server" args="$(find mod_path_planning)/mod_maps/$(arg cliffmap).xml">
+    <param name="map_frame_id" value="map" />
     <param name="frame_id" value="map" />
   </node>
   <node if="$(arg gmmt)" name="gmmtmap_server" pkg="gmmtmap_ros" type="gmmtmap_server" args="$(find mod_path_planning)/mod_maps/$(arg gmmtmap).xml">

@@ -1,27 +1,27 @@
 session: toy-examples
+
+# init_cmd to run before launch in each window
 init_cmd: |
   export TMULE=1
-  cd @TMULE_CONFIG_DIR@ || true
-  source ./setup.sh
+  date
+  sleep 1
+  echo $SHELL
 
 windows:
   - name: roscore
     panes:
       - roscore
-    wait: 0
-    check: "rostopic list"
-
-  - name: stef-map
     wait: 3
+  - name: stef-map
+    wait: 0
     panes:
       - roslaunch mod_path_planning stef_empty.launch --screen
-
   - name: planner
+    wait: 3
     panes:
       - mkdir -p /home/ksatyaki/experiments/pedsim_warehouse/savedPaths
       - roslaunch mod_path_planning planner_pedsim_warehouse.launch folder:=/home/ksatyaki/experiments/pedsim_warehouse/ --screen
-
   - name: scripts
+    wait: 0
     panes:
       - sleep 10; rosrun mod_path_planning toy_example_1.sh 300 20
-      - sleep 60; rosrun mod_path_planning toy_example_2.sh 300 20
