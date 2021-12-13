@@ -25,4 +25,4 @@ windows:
   - name: scripts
     wait: 0
     panes:
-      - sleep 10; rosrun mod_path_planning toy_example_1.sh 300 20
+      - sleep 10; rosrun mod_path_planning toy1.sh 300 10

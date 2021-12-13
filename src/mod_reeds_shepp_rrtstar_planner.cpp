@@ -551,7 +551,7 @@ int main(int argn, char *args[]) {
       pathStatsFile.close();
 
     } else {
-      ROS_INFO("No goals in queue yet.");
+      ROS_INFO_STREAM_THROTTLE(30,"No goals in queue yet.");
       rate.sleep();
     }
   }

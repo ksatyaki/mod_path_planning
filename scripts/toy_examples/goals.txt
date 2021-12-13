@@ -1,0 +1,12 @@
+
+Start: Position(2,018, 2,162, 0,000), Orientation(0,000, 0,000, 0,029, 1,000) = Angle: 0,059
+Goal:  Position(26,457, 17,616, 0,000), Orientation(0,000, 0,000, 0,639, 0,769) = Angle: 1,386
+
+[ INFO] [1636887942.840868872]: Setting goal: Frame:map, Position(33,869, 2,057, 0,000), Orientation(0,000, 0,000, 0,734, 0,679) = Angle: 1,648
+[ INFO] [1636887948.928599417]: Setting goal: Frame:map, Position(8,871, 21,916, 0,000), Orientation(0,000, 0,000, 0,779, 0,627) = Angle: 1,787
+
+[ INFO] [1636887965.353783257]: Setting goal: Frame:map, Position(1,284, 7,616, 0,000), Orientation(0,000, 0,000, 0,000, 1,000) = Angle: 0,000
+[ INFO] [1636887971.641283473]: Setting goal: Frame:map, Position(32,156, 7,302, 0,000), Orientation(0,000, 0,000, 0,000, 1,000) = Angle: 0,000
+
+[ INFO] [1636887978.845760589]: Setting goal: Frame:map, Position(33,589, 7,511, 0,000), Orientation(0,000, 0,000, -0,999, 0,039) = Angle: -3,063
+[ INFO] [1636887982.986176102]: Setting goal: Frame:map, Position(3,486, 7,826, 0,000), Orientation(0,000, 0,000, 1,000, 0,006) = Angle: 3,129
