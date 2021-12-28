@@ -4,6 +4,9 @@ RRTStarMotionPlanner:
     weight_d: 1.0
     weight_q: 1.0
     weight_c: 0.02
+    weight_upstream: 0.1
+    weight_dtc: 0.02
+    weight_intensity: 0.2
     path_resolution: 0.1
     publish_viz_markers: true
   vehicle:

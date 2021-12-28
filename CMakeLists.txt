@@ -74,3 +74,7 @@ target_link_libraries(mod_reeds_shepp_rrtstar_planner ${catkin_LIBRARIES} ${OMPL
 add_executable(paths_to_costs src/compute_costs_from_path.cpp)
 add_dependencies(paths_to_costs ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(paths_to_costs ${catkin_LIBRARIES} ${OMPL_LIBRARIES} ${MRPT_LIBRARIES} ${Boost_LIBRARIES})
+
+add_executable(planner_benchmarks src/planner_benchmarks_mod_sampling.cpp)
+add_dependencies(planner_benchmarks ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(planner_benchmarks ${catkin_LIBRARIES} ${OMPL_LIBRARIES} ${MRPT_LIBRARIES} ${Boost_LIBRARIES})
