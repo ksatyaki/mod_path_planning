@@ -12,45 +12,34 @@
 #include "ompl/mod/objectives/UpstreamCriterionOptimizationObjective.h"
 #include "ompl_planners_ros/visualization.hpp"
 
-#include <ompl/geometric/planners/rrt/RRTstar.h>
+#include <ompl/geometric/planners/fmt/FMT.h>
+#include <ompl/geometric/planners/prm/PRMstar.h>
 #include <ompl/geometric/planners/rrt/InformedRRTstar.h>
 #include <ompl/geometric/planners/rrt/RRTsharp.h>
-#include <ompl/geometric/planners/prm/PRMstar.h>
-#include <ompl/geometric/planners/fmt/FMT.h>
+#include <ompl/geometric/planners/rrt/RRTstar.h>
 
-ompl::base::PlannerPtr getConfiguredRRTstar(const ompl::base::SpaceInformationPtr& si) {
+ompl::base::PlannerPtr
+getConfiguredRRTstar(const ompl::base::SpaceInformationPtr &si) {
 
-  auto* planner = new ompl::geometric::RRTstar(si);
+  auto *planner = new ompl::geometric::RRTstar(si);
   planner->setKNearest(false);
   planner->setRange(si->getStateSpace()->getMaximumExtent());
   return ompl::base::PlannerPtr(planner);
 }
 
-ompl::base::PlannerPtr getConfiguredRRTsharp(const ompl::base::SpaceInformationPtr& si) {
+ompl::base::PlannerPtr
+getConfiguredInformedRRTstar(const ompl::base::SpaceInformationPtr &si) {
 
-  auto* planner = new ompl::geometric::RRTsharp(si);
+  auto *planner = new ompl::geometric::InformedRRTstar(si);
   planner->setKNearest(false);
   planner->setRange(si->getStateSpace()->getMaximumExtent());
   return ompl::base::PlannerPtr(planner);
 }
 
-ompl::base::PlannerPtr getConfiguredInformedRRTstar(const ompl::base::SpaceInformationPtr& si) {
+ompl::base::PlannerPtr
+getConfiguredPRMstar(const ompl::base::SpaceInformationPtr &si) {
 
-  auto* planner = new ompl::geometric::InformedRRTstar(si);
-  planner->setKNearest(false);
-  planner->setRange(si->getStateSpace()->getMaximumExtent());
-  return ompl::base::PlannerPtr(planner);
-}
-
-ompl::base::PlannerPtr getConfiguredFMT(const ompl::base::SpaceInformationPtr& si) {
-
-  auto* planner = new ompl::geometric::FMT(si);
-  return ompl::base::PlannerPtr(planner);
-}
-
-ompl::base::PlannerPtr getConfiguredPRMstar(const ompl::base::SpaceInformationPtr& si) {
-
-  auto* planner = new ompl::geometric::PRMstar(si);
+  auto *planner = new ompl::geometric::PRMstar(si);
   return ompl::base::PlannerPtr(planner);
 }
 
@@ -139,7 +128,7 @@ int main(int argn, char *args[]) {
 
   // Start all clients
   cliffmap_client = std::make_shared<cliffmap_ros::CLiFFMapClient>();
-  stefmap_client = std::make_shared<stefmap_ros::STeFMapClient>();
+  // stefmap_client = std::make_shared<stefmap_ros::STeFMapClient>();
   gmmtmap_client = std::make_shared<gmmtmap_ros::GMMTMapClient>();
 
   // Get the occupancy map
@@ -177,57 +166,111 @@ int main(int argn, char *args[]) {
           "/home/ksatyaki/intensity_map_1m_pedsim.xml", pp.weight_d,
           pp.weight_q, weight_intensity));
 
-  ompl::tools::Benchmark bm_cliff (*ss_cliff,  "CLiFF-benchmark");
-  ompl::tools::Benchmark bm_gmmt (*ss_gmmt,  "GMMT-benchmark");
-  ompl::tools::Benchmark bm_dtc (*ss_dtc,  "DTC-benchmark");
-  ompl::tools::Benchmark bm_intensity (*ss_intensity,  "Intensity-benchmark");
+  ompl::tools::Benchmark bm_cliff(*ss_cliff, "CLiFF-benchmark");
+  ompl::tools::Benchmark bm_gmmt(*ss_gmmt, "GMMT-benchmark");
+  ompl::tools::Benchmark bm_dtc(*ss_dtc, "DTC-benchmark");
+  ompl::tools::Benchmark bm_intensity(*ss_intensity, "Intensity-benchmark");
 
   ss_cliff->setOptimizationObjective(CLiFFUpstreamCostObjective);
   ss_gmmt->setOptimizationObjective(GMMTUpstreamCostObjective);
   ss_dtc->setOptimizationObjective(DTCCostObjective);
   ss_intensity->setOptimizationObjective(IntensityCostObjective);
 
-  bm_cliff.addPlannerAllocator(std::bind(&getConfiguredRRTstar, std::placeholders::_1));
-  bm_cliff.addPlannerAllocator(std::bind(&getConfiguredRRTsharp, std::placeholders::_1));
-  bm_cliff.addPlannerAllocator(std::bind(&getConfiguredPRMstar, std::placeholders::_1));
-  bm_cliff.addPlannerAllocator(std::bind(&getConfiguredFMT, std::placeholders::_1));
-  bm_cliff.addPlannerAllocator(std::bind(&getConfiguredInformedRRTstar, std::placeholders::_1));
+  bm_cliff.addPlannerAllocator(
+      std::bind(&getConfiguredRRTstar, std::placeholders::_1));
+  bm_cliff.addPlannerAllocator(
+      std::bind(&getConfiguredPRMstar, std::placeholders::_1));
+  bm_cliff.addPlannerAllocator(
+      std::bind(&getConfiguredInformedRRTstar, std::placeholders::_1));
 
-  bm_dtc.addPlannerAllocator(std::bind(&getConfiguredRRTstar, std::placeholders::_1));
-  bm_dtc.addPlannerAllocator(std::bind(&getConfiguredRRTsharp, std::placeholders::_1));
-  bm_dtc.addPlannerAllocator(std::bind(&getConfiguredPRMstar, std::placeholders::_1));
-  bm_dtc.addPlannerAllocator(std::bind(&getConfiguredFMT, std::placeholders::_1));
-  bm_dtc.addPlannerAllocator(std::bind(&getConfiguredInformedRRTstar, std::placeholders::_1));
+  bm_dtc.addPlannerAllocator(
+      std::bind(&getConfiguredRRTstar, std::placeholders::_1));
+  bm_dtc.addPlannerAllocator(
+      std::bind(&getConfiguredPRMstar, std::placeholders::_1));
+  bm_dtc.addPlannerAllocator(
+      std::bind(&getConfiguredInformedRRTstar, std::placeholders::_1));
 
-  bm_gmmt.addPlannerAllocator(std::bind(&getConfiguredRRTstar, std::placeholders::_1));
-  bm_gmmt.addPlannerAllocator(std::bind(&getConfiguredRRTsharp, std::placeholders::_1));
-  bm_gmmt.addPlannerAllocator(std::bind(&getConfiguredPRMstar, std::placeholders::_1));
-  bm_gmmt.addPlannerAllocator(std::bind(&getConfiguredFMT, std::placeholders::_1));
-  bm_gmmt.addPlannerAllocator(std::bind(&getConfiguredInformedRRTstar, std::placeholders::_1));
+  bm_gmmt.addPlannerAllocator(
+      std::bind(&getConfiguredRRTstar, std::placeholders::_1));
+  bm_gmmt.addPlannerAllocator(
+      std::bind(&getConfiguredPRMstar, std::placeholders::_1));
+  bm_gmmt.addPlannerAllocator(
+      std::bind(&getConfiguredInformedRRTstar, std::placeholders::_1));
 
-  bm_intensity.addPlannerAllocator(std::bind(&getConfiguredRRTstar, std::placeholders::_1));
-  bm_intensity.addPlannerAllocator(std::bind(&getConfiguredRRTsharp, std::placeholders::_1));
-  bm_intensity.addPlannerAllocator(std::bind(&getConfiguredPRMstar, std::placeholders::_1));
-  bm_intensity.addPlannerAllocator(std::bind(&getConfiguredFMT, std::placeholders::_1));
-  bm_intensity.addPlannerAllocator(std::bind(&getConfiguredInformedRRTstar, std::placeholders::_1));
+  bm_intensity.addPlannerAllocator(
+      std::bind(&getConfiguredRRTstar, std::placeholders::_1));
+  bm_intensity.addPlannerAllocator(
+      std::bind(&getConfiguredPRMstar, std::placeholders::_1));
+  bm_intensity.addPlannerAllocator(
+      std::bind(&getConfiguredInformedRRTstar, std::placeholders::_1));
 
   ompl::tools::Benchmark::Request req;
-  req.maxTime = 5.0;
-  req.maxMem = 500.0;
-  req.runCount = 25;
+  req.maxTime = 10.0;
+  req.maxMem = 6000.0;
+  req.runCount = 50;
   req.displayProgress = true;
+  req.simplify = false;
+  req.timeBetweenUpdates = 0.001;
 
-  bm_cliff.benchmark(req);
-  bm_cliff.saveResultsToFile("CLiFFResults.log");
+  std::shared_ptr<ob::ScopedState<>> start[3];
+  std::shared_ptr<ob::ScopedState<>> goal[3];
 
-  bm_dtc.benchmark(req);
-  bm_dtc.saveResultsToFile("DTCResults.log");
+  for (size_t i = 0; i < 3; i++) {
+    start[i] = std::make_shared<ob::ScopedState<>>(ss_cliff->getStateSpace());
+    goal[i] = std::make_shared<ob::ScopedState<>>(ss_cliff->getStateSpace());
+  }
 
-  bm_gmmt.benchmark(req);
-  bm_gmmt.saveResultsToFile("GMMT.log");
+  // Start: 2,018, 2,162, 0,059;
+  // Goal:  26,457, 17,616, 1,386;
 
-  bm_intensity.benchmark(req);
-  bm_intensity.saveResultsToFile("IntensityResults.log");
+  // Start1: 0.416, 27.676, -0.425;
+  // Goal1: 30.404, 2.929, -1.571;
+
+  // Start2: 23.804, 2.444, 3.086;
+  // Goal2: 25.163, 27.482, 1.571;
+
+  (*start[0])[0] = 2.018; (*start[0])[1] = 2.162; (*start[0])[2] = 0.059;
+  (*goal[0])[0] = 26.457; (*goal[0])[1] = 17.616; (*goal[0])[2] = 1.386;
+
+
+  (*start[1])[0] = 0.416; (*start[1])[1] = 27.676; (*start[1])[2] = -0.425;
+  (*goal[1])[0] = 30.404; (*goal[1])[1] = 2.929; (*goal[1])[2] = -1.571;
+
+
+  (*start[2])[0] = 23.804; (*start[2])[1] = 2.444; (*start[2])[2] = 3.086;
+  (*goal[2])[0] = 25.163; (*goal[2])[1] = 27.482; (*goal[2])[2] = 1.517;
+
+
+  char fileName[256];
+
+  ros::Time t = ros::Time::now();
+
+  for (int number = 0; number < 3; number++) {
+    ss_cliff->setStartAndGoalStates(*start[number], *goal[number]);
+    bm_cliff.benchmark(req);
+    sprintf(fileName, "/home/ksatyaki/prelim_results/%lf-CLiFF-%d-results.log",
+            t.toSec(), number);
+    bm_cliff.saveResultsToFile(fileName);
+
+    ss_dtc->setStartAndGoalStates(*start[number], *goal[number]);
+    bm_dtc.benchmark(req);
+    sprintf(fileName, "/home/ksatyaki/prelim_results/%lf-DTC-%d-results.log",
+            t.toSec(), number);
+    bm_dtc.saveResultsToFile(fileName);
+
+    ss_gmmt->setStartAndGoalStates(*start[number], *goal[number]);
+    bm_gmmt.benchmark(req);
+    sprintf(fileName, "/home/ksatyaki/prelim_results/%lf-GMMT-%d-results.log",
+            t.toSec(), number);
+    bm_gmmt.saveResultsToFile(fileName);
+
+    ss_intensity->setStartAndGoalStates(*start[number], *goal[number]);
+    bm_intensity.benchmark(req);
+    sprintf(fileName,
+            "/home/ksatyaki/prelim_results/%lf-intensity-%d-results.log",
+            t.toSec(), number);
+    bm_intensity.saveResultsToFile(fileName);
+  }
 
   std::cout << "... DONE ..." << std::endl;
   return 0;
