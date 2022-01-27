@@ -163,7 +163,7 @@ int main(int argn, char *args[]) {
   IntensityCostObjective = ob::OptimizationObjectivePtr(
       new ompl::mod::IntensityMapOptimizationObjective(
           ss_intensity->getSpaceInformation(),
-          "/home/ksatyaki/intensity_map_1m_pedsim.xml", pp.weight_d,
+          "/home/ksatyaki/intensity_map_1m.xml", pp.weight_d,
           pp.weight_q, weight_intensity));
 
   ompl::tools::Benchmark bm_cliff(*ss_cliff, "CLiFF-benchmark");
@@ -205,9 +205,9 @@ int main(int argn, char *args[]) {
       std::bind(&getConfiguredInformedRRTstar, std::placeholders::_1));
 
   ompl::tools::Benchmark::Request req;
-  req.maxTime = 10.0;
+  req.maxTime = 60.0;
   req.maxMem = 6000.0;
-  req.runCount = 50;
+  req.runCount = 15;
   req.displayProgress = true;
   req.simplify = false;
   req.timeBetweenUpdates = 0.001;
@@ -229,16 +229,25 @@ int main(int argn, char *args[]) {
   // Start2: 23.804, 2.444, 3.086;
   // Goal2: 25.163, 27.482, 1.571;
 
-  (*start[0])[0] = 2.018; (*start[0])[1] = 2.162; (*start[0])[2] = 0.059;
-  (*goal[0])[0] = 26.457; (*goal[0])[1] = 17.616; (*goal[0])[2] = 1.386;
+  // start: {x: 47.690, y: -18.848, theta: -2.356}
+  // goal: {x: -19.575, y: 12.390, theta: 2.313}
+
+  // goal: {x: -3.85, y: -6.82, theta: -0.8203}
+  // start: {x: 21.471, y: -17.647, theta: 0.733}
+
+  // start: {x: 11.5, y: -5.0, theta: 2.604}
+  // goal: {x: -25.00, y: 3.00, theta: -1.999}
+
+  (*start[0])[0] = 47.690; (*start[0])[1] = -18.848; (*start[0])[2] = -2.356;
+  (*goal[0])[0] = -19.575; (*goal[0])[1] = 12.390; (*goal[0])[2] = 2.313;
 
 
-  (*start[1])[0] = 0.416; (*start[1])[1] = 27.676; (*start[1])[2] = -0.425;
-  (*goal[1])[0] = 30.404; (*goal[1])[1] = 2.929; (*goal[1])[2] = -1.571;
+  (*start[1])[0] = -3.85; (*start[1])[1] = -6.82; (*start[1])[2] = -0.8203;
+  (*goal[1])[0] = 21.471; (*goal[1])[1] = -17.647; (*goal[1])[2] = 0.733;
 
 
-  (*start[2])[0] = 23.804; (*start[2])[1] = 2.444; (*start[2])[2] = 3.086;
-  (*goal[2])[0] = 25.163; (*goal[2])[1] = 27.482; (*goal[2])[2] = 1.517;
+  (*start[2])[0] = 11.5; (*start[2])[1] = -5.0; (*start[2])[2] = 2.604;
+  (*goal[2])[0] = -25.00; (*goal[2])[1] = 3.00; (*goal[2])[2] = -1.999;
 
 
   char fileName[256];

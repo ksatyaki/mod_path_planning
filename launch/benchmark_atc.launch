@@ -16,7 +16,7 @@
   <arg name="gmmt" default="true"/>
   
   <!-- Parameters -->
-  <rosparam file="$(find mod_path_planning)/param/rrtstar_motion_planner_params.yaml" command="load" subst_value="true"/>
+  <rosparam file="$(find mod_path_planning)/param/rrtstar_motion_planner_params.yaml" command="load"/>
   
   <!-- Nodes -->
   <node name="map_server" pkg="map_server" type="map_server" args="$(find mod_path_planning)/maps/$(arg occmap).yaml"/>
