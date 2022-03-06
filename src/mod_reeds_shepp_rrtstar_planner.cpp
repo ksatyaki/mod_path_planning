@@ -165,6 +165,7 @@ class MoDReedsSheppRRTStarPlanner {
     DTCCostObjective =
         ob::OptimizationObjectivePtr(new ompl::mod::DTCOptimizationObjective(
             planner->ss->getSpaceInformation(), cliffmap_client->get(),
+            "/home/ksatyaki/intensity_map_1m.xml",
             pp.weight_d, pp.weight_q, pp.weight_c, vp.max_vehicle_speed));
 
     STeFUpstreamCostObjective = ob::OptimizationObjectivePtr(
@@ -181,6 +182,7 @@ class MoDReedsSheppRRTStarPlanner {
     CLiFFUpstreamCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::UpstreamCriterionOptimizationObjective(
             planner->ss->getSpaceInformation(), cliffmap_client->get(),
+            "/home/ksatyaki/intensity_map_1m.xml",
             pp.weight_d, pp.weight_q, pp.weight_c));
 
     MoDUnawareCostObjective = ob::OptimizationObjectivePtr(
@@ -191,7 +193,7 @@ class MoDReedsSheppRRTStarPlanner {
     IntensityCostObjective = ob::OptimizationObjectivePtr(
         new ompl::mod::IntensityMapOptimizationObjective(
             planner->ss->getSpaceInformation(),
-            "/home/ksatyaki/intensity_map_1m_pedsim.xml", pp.weight_d, pp.weight_q,
+            "/home/ksatyaki/intensity_map_1m.xml", pp.weight_d, pp.weight_q,
             pp.weight_c));
 
     if (mod_type_ == ompl::mod::MapType::CLiFFMap && not upstream) {
