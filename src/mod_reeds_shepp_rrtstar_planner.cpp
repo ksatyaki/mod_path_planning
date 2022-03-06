@@ -469,7 +469,7 @@ int main(int argn, char *args[]) {
               (folder + std::string("savedPaths/%lf-%s_%s_%d.path")).c_str(),
               goal->header.stamp.toSec(),
               mod_rs_rrtstar_planner.getMapTypeStr().c_str(),
-              goal->upstream ? "_upstream" : "noup", seq++);
+              goal->upstream ? "_upstream_q" : "_DTC_q", seq++);
       save_path_msg.data = fileName;
       mod_rs_rrtstar_planner.savePathCallback(save_path_msg);
 
